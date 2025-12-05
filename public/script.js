@@ -1,6 +1,8 @@
 // CONFIGURAÇÃO
 const PORTAL_URL = 'https://ir-comercio-portal-zcan.onrender.com';
-const API_URL = 'https://transportadoras.onrender.com';
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3003/api'
+    : `${window.location.origin}/api`;
 
 let transportadoras = [];
 let isOnline = false;
@@ -432,10 +434,6 @@ function updateConnectionStatus() {
     const statusElement = document.getElementById('connectionStatus');
     if (statusElement) {
         statusElement.className = isOnline ? 'connection-status online' : 'connection-status offline';
-        const statusText = document.getElementById('statusText');
-        if (statusText) {
-            statusText.textContent = isOnline ? 'Online' : 'Offline';
-        }
     }
 }
 
