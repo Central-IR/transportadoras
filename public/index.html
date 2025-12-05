@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transportadoras</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- SPLASH SCREEN -->
+    <div class="splash-screen">
+        <h1 class="splash-title">Guia de Transportadoras</h1>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="app-content">
+        <div class="container">
+            <!-- CABEÇALHO -->
+            <div class="card">
+                <div class="header">
+                    <h1>
+                        Transportadoras
+                    </h1>
+                    <div class="connection-status offline" id="connectionStatus">
+                        <div class="status-dot"></div>
+                        <span id="statusText">Verificando...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTRO DE PESQUISA -->
+            <div class="card filter-section">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="search">Pesquisar</label>
+                    <input 
+                        type="text" 
+                        id="search" 
+                        placeholder="Digite o nome, e-mail ou região..." 
+                        oninput="filterTransportadoras()"
+                    >
+                </div>
+            </div>
+
+            <!-- LISTAGEM -->
+            <div class="card">
+                <div id="transportadorasContainer">
+                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                        Carregando...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTÃO FLUTUANTE -->
+        <button class="floating-add-btn" onclick="toggleForm()" title="Adicionar Transportadora">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+        </button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
