@@ -31,44 +31,34 @@ document.addEventListener('DOMContentLoaded', () => {
 function showConfirm(message, options = {}) {
     return new Promise((resolve) => {
         const { title = 'Confirmação', confirmText = 'Confirmar', cancelText = 'Cancelar', type = 'warning' } = options;
-        
-        // Gera um ID único para este modal
-        const modalId = 'confirmModal_' + Date.now();
 
         const modalHTML = `
-            <div class="modal-overlay" id="${modalId}" style="z-index: 99999;">
-                <div class="modal-content" style="z-index: 100000;">
+            <div class="modal-overlay" id="confirmModal">
+                <div class="modal-content">
                     <div class="modal-header">
                         <h3 class="modal-title">${title}</h3>
                     </div>
                     <p class="modal-message">${message}</p>
-                    <div class="modal-actions" style="z-index: 100001;">
-                        <button type="button" class="secondary" style="z-index: 100002; pointer-events: auto;" onclick="window.closeConfirmModal_${modalId}(false)">
-                            ${cancelText}
-                        </button>
-                        <button type="button" class="${type === 'warning' ? 'danger' : 'success'}" style="z-index: 100002; pointer-events: auto;" onclick="window.closeConfirmModal_${modalId}(true)">
-                            ${confirmText}
-                        </button>
+                    <div class="modal-actions">
+                        <button class="secondary" id="modalCancelBtn">${cancelText}</button>
+                        <button class="${type === 'warning' ? 'danger' : 'success'}" id="modalConfirmBtn">${confirmText}</button>
                     </div>
                 </div>
             </div>
         `;
 
-        // Cria função global temporária para fechar o modal
-        window[`closeConfirmModal_${modalId}`] = (result) => {
-            console.log('🔘 Botão clicado, resultado:', result);
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.animation = 'fadeOut 0.2s ease forwards';
-                setTimeout(() => { 
-                    modal.remove();
-                    delete window[`closeConfirmModal_${modalId}`];
-                    resolve(result); 
-                }, 200);
-            }
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modal = document.getElementById('confirmModal');
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        const cancelBtn = document.getElementById('modalCancelBtn');
+
+        const closeModal = (result) => {
+            modal.style.animation = 'fadeOut 0.2s ease forwards';
+            setTimeout(() => { modal.remove(); resolve(result); }, 200);
         };
 
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        confirmBtn.addEventListener('click', () => closeModal(true));
+        cancelBtn.addEventListener('click', () => closeModal(false));
 
         if (!document.querySelector('#modalAnimations')) {
             const style = document.createElement('style');
@@ -156,9 +146,6 @@ function showViewModal(id) {
     };
 
     closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
 }
 
 function showFormModal(editingId = null) {
@@ -276,7 +263,6 @@ function showFormModal(editingId = null) {
         const regioes = Array.from(document.querySelectorAll('input[id^="regiao_"]:checked'))
             .map(checkbox => checkbox.value);
 
-        // Validação: pelo menos uma região deve ser selecionada
         if (regioes.length === 0) {
             showMessage('Selecione pelo menos uma região de atendimento', 'error');
             return;
@@ -323,13 +309,6 @@ function showFormModal(editingId = null) {
     cancelBtn.addEventListener('click', () => {
         showMessage(isEditing ? 'Atualização cancelada' : 'Cadastro cancelado', 'error');
         closeModal();
-    });
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            showMessage(isEditing ? 'Atualização cancelada' : 'Cadastro cancelado', 'error');
-            closeModal();
-        }
     });
     
     setTimeout(() => document.getElementById('modalNome').focus(), 100);
@@ -603,8 +582,6 @@ window.editTransportadora = function(id) {
 };
 
 window.deleteTransportadora = async function(id) {
-    console.log('🗑️ Iniciando exclusão da transportadora:', id);
-    
     const confirmed = await showConfirm('Tem certeza que deseja excluir esta transportadora?', {
         title: 'Excluir Transportadora',
         confirmText: 'Excluir',
@@ -612,14 +589,7 @@ window.deleteTransportadora = async function(id) {
         type: 'warning'
     });
 
-    console.log('✅ Resposta da confirmação:', confirmed);
-
-    if (!confirmed) {
-        console.log('❌ Exclusão cancelada pelo usuário');
-        return;
-    }
-
-    console.log('🚀 Prosseguindo com a exclusão...');
+    if (!confirmed) return;
 
     const deletedTransportadora = transportadoras.find(t => t.id === id);
     transportadoras = transportadoras.filter(t => t.id !== id);
@@ -646,10 +616,7 @@ window.deleteTransportadora = async function(id) {
             }
 
             if (!response.ok) throw new Error('Erro ao deletar');
-            
-            console.log('✅ Transportadora excluída no servidor');
         } catch (error) {
-            console.error('❌ Erro ao excluir no servidor:', error);
             if (deletedTransportadora) {
                 transportadoras.push(deletedTransportadora);
                 requestAnimationFrame(() => {
