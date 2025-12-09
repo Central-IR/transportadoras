@@ -28,59 +28,39 @@ document.addEventListener('DOMContentLoaded', () => {
     verificarAutenticacao();
 });
 
+// MODAL DE CONFIRMAÇÃO - VERSÃO QUE FUNCIONA 100%
 function showConfirm(message, options = {}) {
     return new Promise((resolve) => {
-        // Remove qualquer modal de confirmação existente
         const existingModal = document.getElementById('confirmModal');
-        if (existingModal) {
-            existingModal.remove();
-        }
+        if (existingModal) existingModal.remove();
 
         const { title = 'Confirmação', confirmText = 'Confirmar', cancelText = 'Cancelar', type = 'warning' } = options;
 
-        const modalHTML = `
-            <div class="modal-overlay" id="confirmModal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 class="modal-title">${title}</h3>
-                    </div>
-                    <p class="modal-message">${message}</p>
-                    <div class="modal-actions">
-                        <button class="secondary" id="modalCancelBtn">${cancelText}</button>
-                        <button class="${type === 'warning' ? 'danger' : 'success'}" id="modalConfirmBtn">${confirmText}</button>
-                    </div>
-                </div>
+        const overlay = document.createElement('div');
+        overlay.id = 'confirmModal';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:999999;';
+
+        const box = document.createElement('div');
+        box.style.cssText = 'background:#2a2a2a;border-radius:16px;padding:2rem;max-width:450px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);';
+
+        box.innerHTML = `
+            <h3 style="color:#fff;margin:0 0 1rem 0;font-size:1.25rem;">${title}</h3>
+            <p style="color:#aaa;margin:0 0 2rem 0;">${message}</p>
+            <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                <button id="btnCancel" style="background:#4B5563;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-size:0.95rem;font-weight:600;min-width:100px;">${cancelText}</button>
+                <button id="btnConfirm" style="background:#e70000;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-size:0.95rem;font-weight:600;min-width:100px;">${confirmText}</button>
             </div>
         `;
 
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        const modal = document.getElementById('confirmModal');
-        const confirmBtn = document.getElementById('modalConfirmBtn');
-        const cancelBtn = document.getElementById('modalCancelBtn');
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
 
-        if (!modal || !confirmBtn || !cancelBtn) {
-            console.error('Erro: Elementos do modal não foram encontrados');
-            resolve(false);
-            return;
-        }
+        const btnCancel = document.getElementById('btnCancel');
+        const btnConfirm = document.getElementById('btnConfirm');
 
-        const closeModal = (result) => {
-            modal.style.animation = 'fadeOut 0.2s ease forwards';
-            setTimeout(() => { 
-                modal.remove(); 
-                resolve(result); 
-            }, 200);
-        };
-
-        confirmBtn.addEventListener('click', () => closeModal(true));
-        cancelBtn.addEventListener('click', () => closeModal(false));
-
-        if (!document.querySelector('#modalAnimations')) {
-            const style = document.createElement('style');
-            style.id = 'modalAnimations';
-            style.textContent = `@keyframes fadeOut { to { opacity: 0; } }`;
-            document.head.appendChild(style);
-        }
+        btnCancel.onclick = () => { overlay.remove(); resolve(false); };
+        btnConfirm.onclick = () => { overlay.remove(); resolve(true); };
+        overlay.onclick = (e) => { if (e.target === overlay) { overlay.remove(); resolve(false); } };
     });
 }
 
@@ -597,80 +577,51 @@ window.editTransportadora = function(id) {
 };
 
 window.deleteTransportadora = async function(id) {
-    console.log('🗑️ [DELETE] Iniciando exclusão, ID:', id);
+    const confirmed = await showConfirm('Tem certeza que deseja excluir esta transportadora?', {
+        title: 'Excluir Transportadora',
+        confirmText: 'Excluir',
+        cancelText: 'Cancelar',
+        type: 'warning'
+    });
+
+    if (!confirmed) return;
+
+    const deletedTransportadora = transportadoras.find(t => t.id === id);
+    transportadoras = transportadoras.filter(t => t.id !== id);
     
-    try {
-        console.log('🗑️ [DELETE] Chamando showConfirm...');
-        const confirmed = await showConfirm('Tem certeza que deseja excluir esta transportadora?', {
-            title: 'Excluir Transportadora',
-            confirmText: 'Excluir',
-            cancelText: 'Cancelar',
-            type: 'warning'
-        });
+    requestAnimationFrame(() => {
+        atualizarTransportadorasDisponiveis();
+        renderTransportadorasFilter();
+        filterTransportadoras();
+    });
+    
+    showMessage('Excluído!', 'error');
 
-        console.log('🗑️ [DELETE] showConfirm retornou:', confirmed);
+    if (isOnline) {
+        try {
+            const response = await fetch(`${API_URL}/transportadoras/${id}`, { 
+                method: 'DELETE',
+                headers: { 'X-Session-Token': sessionToken }
+            });
 
-        if (!confirmed) {
-            console.log('🗑️ [DELETE] Exclusão cancelada pelo usuário');
-            return;
-        }
-
-        console.log('🗑️ [DELETE] Prosseguindo com exclusão...');
-
-        const deletedTransportadora = transportadoras.find(t => t.id === id);
-        console.log('🗑️ [DELETE] Transportadora encontrada:', deletedTransportadora);
-        
-        transportadoras = transportadoras.filter(t => t.id !== id);
-        console.log('🗑️ [DELETE] Transportadora removida da lista local');
-        
-        requestAnimationFrame(() => {
-            atualizarTransportadorasDisponiveis();
-            renderTransportadorasFilter();
-            filterTransportadoras();
-            console.log('🗑️ [DELETE] Interface atualizada');
-        });
-        
-        showMessage('Excluído!', 'error');
-        console.log('🗑️ [DELETE] Mensagem exibida');
-
-        if (isOnline) {
-            console.log('🗑️ [DELETE] Enviando requisição ao servidor...');
-            try {
-                const response = await fetch(`${API_URL}/transportadoras/${id}`, { 
-                    method: 'DELETE',
-                    headers: { 'X-Session-Token': sessionToken }
-                });
-
-                console.log('🗑️ [DELETE] Resposta do servidor:', response.status);
-
-                if (response.status === 401) {
-                    sessionStorage.removeItem('transportadoraSession');
-                    mostrarTelaAcessoNegado('Sua sessão expirou');
-                    return;
-                }
-
-                if (!response.ok) throw new Error('Erro ao deletar');
-                
-                console.log('🗑️ [DELETE] Exclusão concluída com sucesso no servidor');
-            } catch (error) {
-                console.error('🗑️ [DELETE] Erro ao excluir no servidor:', error);
-                if (deletedTransportadora) {
-                    transportadoras.push(deletedTransportadora);
-                    requestAnimationFrame(() => {
-                        atualizarTransportadorasDisponiveis();
-                        renderTransportadorasFilter();
-                        filterTransportadoras();
-                    });
-                    showMessage('Erro ao excluir', 'error');
-                }
+            if (response.status === 401) {
+                sessionStorage.removeItem('transportadoraSession');
+                mostrarTelaAcessoNegado('Sua sessão expirou');
+                return;
             }
-        } else {
-            console.log('🗑️ [DELETE] Servidor offline, exclusão apenas local');
+
+            if (!response.ok) throw new Error('Erro ao deletar');
+        } catch (error) {
+            if (deletedTransportadora) {
+                transportadoras.push(deletedTransportadora);
+                requestAnimationFrame(() => {
+                    atualizarTransportadorasDisponiveis();
+                    renderTransportadorasFilter();
+                    filterTransportadoras();
+                });
+                showMessage('Erro ao excluir', 'error');
+            }
         }
-        
-        console.log('🗑️ [DELETE] Processo de exclusão finalizado');
-    } catch (error) {
-        console.error('🗑️ [DELETE] ERRO CRÍTICO:', error);
     }
 };
 
