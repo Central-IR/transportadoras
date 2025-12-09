@@ -348,9 +348,10 @@ tbody tr:hover { background: var(--table-hover); }
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10000;
+    z-index: 999999 !important;
     opacity: 0;
     animation: fadeIn 0.2s ease forwards;
+    pointer-events: auto !important;
 }
 
 @keyframes fadeIn { to { opacity: 1; } }
@@ -367,6 +368,9 @@ tbody tr:hover { background: var(--table-hover); }
     border: 1px solid var(--border-color);
     transform: scale(0.9);
     animation: scaleIn 0.2s ease forwards;
+    position: relative;
+    z-index: 1000000 !important;
+    pointer-events: auto !important;
 }
 
 .modal-content.large { max-width: 800px; }
@@ -378,6 +382,8 @@ tbody tr:hover { background: var(--table-hover); }
     align-items: center;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1000001 !important;
 }
 
 .modal-title {
@@ -392,17 +398,33 @@ tbody tr:hover { background: var(--table-hover); }
     font-size: 0.95rem;
     line-height: 1.6;
     margin-bottom: 2rem;
+    position: relative;
+    z-index: 1000001 !important;
 }
 
-.modal-form-content { margin-bottom: 0; }
+.modal-form-content { 
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1000001 !important;
+}
 
 .modal-actions {
     display: flex;
     gap: 0.75rem;
     justify-content: flex-end;
+    position: relative;
+    z-index: 1000002 !important;
+    pointer-events: auto !important;
 }
 
-.modal-actions button { margin: 0; min-width: 100px; }
+.modal-actions button { 
+    margin: 0; 
+    min-width: 100px;
+    position: relative;
+    z-index: 1000003 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
 
 /* CAMPOS DINÂMICOS */
 .dynamic-field {
