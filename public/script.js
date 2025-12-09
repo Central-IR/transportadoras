@@ -40,8 +40,8 @@ function showConfirm(message, options = {}) {
                     </div>
                     <p class="modal-message">${message}</p>
                     <div class="modal-actions">
-                        <button class="secondary" id="modalCancelBtn">${cancelText}</button>
-                        <button class="${type === 'warning' ? 'danger' : 'success'}" id="modalConfirmBtn">${confirmText}</button>
+                        <button type="button" class="secondary" id="modalCancelBtn">${cancelText}</button>
+                        <button type="button" class="${type === 'warning' ? 'danger' : 'success'}" id="modalConfirmBtn">${confirmText}</button>
                     </div>
                 </div>
             </div>
@@ -60,10 +60,25 @@ function showConfirm(message, options = {}) {
             }, 200);
         };
 
-        confirmBtn.addEventListener('click', () => closeModal(true));
-        cancelBtn.addEventListener('click', () => closeModal(false));
+        // Event listeners com preventDefault para garantir o comportamento
+        confirmBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeModal(true);
+        });
+        
+        cancelBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeModal(false);
+        });
+
+        // Não fecha ao clicar no overlay para evitar fechamento acidental
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal(false);
+            if (e.target === modal) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
         });
 
         if (!document.querySelector('#modalAnimations')) {
@@ -599,6 +614,8 @@ window.editTransportadora = function(id) {
 };
 
 window.deleteTransportadora = async function(id) {
+    console.log('🗑️ Iniciando exclusão da transportadora:', id);
+    
     const confirmed = await showConfirm('Tem certeza que deseja excluir esta transportadora?', {
         title: 'Excluir Transportadora',
         confirmText: 'Excluir',
@@ -606,10 +623,14 @@ window.deleteTransportadora = async function(id) {
         type: 'warning'
     });
 
+    console.log('✅ Resposta da confirmação:', confirmed);
+
     if (!confirmed) {
-        console.log('Exclusão cancelada pelo usuário');
+        console.log('❌ Exclusão cancelada pelo usuário');
         return;
     }
+
+    console.log('🚀 Prosseguindo com a exclusão...');
 
     const deletedTransportadora = transportadoras.find(t => t.id === id);
     transportadoras = transportadoras.filter(t => t.id !== id);
@@ -636,7 +657,10 @@ window.deleteTransportadora = async function(id) {
             }
 
             if (!response.ok) throw new Error('Erro ao deletar');
+            
+            console.log('✅ Transportadora excluída no servidor');
         } catch (error) {
+            console.error('❌ Erro ao excluir no servidor:', error);
             if (deletedTransportadora) {
                 transportadoras.push(deletedTransportadora);
                 requestAnimationFrame(() => {
