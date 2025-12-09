@@ -217,7 +217,7 @@ button {
     border: none;
     padding: 12px 24px;
     border-radius: 8px;
-    cursor: pointer;
+    cursor: pointer !important;
     font-size: 0.95rem;
     font-weight: 600;
     margin-right: 12px;
@@ -226,10 +226,11 @@ button {
     justify-content: center;
     gap: 0.5rem;
     transition: opacity 0.3s;
+    pointer-events: auto !important;
 }
 
-button:hover:not(:disabled) { opacity: 0.9; }
-button:disabled { background: #4B5563; cursor: not-allowed; opacity: 0.5; }
+button:hover:not(:disabled) { opacity: 0.9; cursor: pointer !important; }
+button:disabled { background: #4B5563; cursor: not-allowed !important; opacity: 0.5; }
 
 button.register, button[onclick*="toggleForm"] { background: var(--btn-register); }
 button.danger, button.delete, button[onclick*="deleteTransportadora"], .action-btn.delete { background: var(--btn-delete); }
@@ -350,6 +351,7 @@ tbody tr:hover { background: var(--table-hover); }
     z-index: 10000;
     opacity: 0;
     animation: fadeIn 0.2s ease forwards;
+    pointer-events: auto;
 }
 
 @keyframes fadeIn { to { opacity: 1; } }
@@ -366,6 +368,9 @@ tbody tr:hover { background: var(--table-hover); }
     border: 1px solid var(--border-color);
     transform: scale(0.9);
     animation: scaleIn 0.2s ease forwards;
+    position: relative;
+    z-index: 10001;
+    pointer-events: auto;
 }
 
 .modal-content.large { max-width: 800px; }
@@ -399,9 +404,17 @@ tbody tr:hover { background: var(--table-hover); }
     display: flex;
     gap: 0.75rem;
     justify-content: flex-end;
+    position: relative;
+    z-index: 10002;
 }
 
-.modal-actions button { margin: 0; min-width: 100px; }
+.modal-actions button { 
+    margin: 0; 
+    min-width: 100px;
+    pointer-events: auto;
+    position: relative;
+    z-index: 10003;
+}
 
 /* CAMPOS DINÂMICOS */
 .dynamic-field {
