@@ -6,6 +6,8 @@ const API_URL = window.location.hostname === 'localhost' || window.location.host
 
 let transportadoras = [];
 let isOnline = false;
+let transportadoraSelecionada = 'TODAS';
+let transportadorasDisponiveis = new Set();
 let lastDataHash = '';
 let sessionToken = null;
 
@@ -52,11 +54,17 @@ function showConfirm(message, options = {}) {
 
         const closeModal = (result) => {
             modal.style.animation = 'fadeOut 0.2s ease forwards';
-            setTimeout(() => { modal.remove(); resolve(result); }, 200);
+            setTimeout(() => { 
+                modal.remove(); 
+                resolve(result); 
+            }, 200);
         };
 
         confirmBtn.addEventListener('click', () => closeModal(true));
         cancelBtn.addEventListener('click', () => closeModal(false));
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal(false);
+        });
 
         if (!document.querySelector('#modalAnimations')) {
             const style = document.createElement('style');
@@ -87,6 +95,8 @@ function showViewModal(id) {
         ? transportadora.estados.join(', ')
         : '<span class="empty">Nenhum estado selecionado</span>';
 
+    const email = transportadora.email || '<span class="empty">Não informado</span>';
+
     const modalHTML = `
         <div class="modal-overlay" id="viewModal">
             <div class="modal-content large">
@@ -101,7 +111,7 @@ function showViewModal(id) {
                     
                     <div class="view-section">
                         <h4>E-mail</h4>
-                        <p>${transportadora.email}</p>
+                        <p>${email}</p>
                     </div>
                     
                     <div class="view-section">
@@ -142,6 +152,9 @@ function showViewModal(id) {
     };
 
     closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
 }
 
 function showFormModal(editingId = null) {
@@ -169,8 +182,8 @@ function showFormModal(editingId = null) {
                         </div>
                         
                         <div class="form-group">
-                            <label for="modalEmail">E-mail *</label>
-                            <input type="email" id="modalEmail" value="${transportadora?.email || ''}" required>
+                            <label for="modalEmail">E-mail</label>
+                            <input type="email" id="modalEmail" value="${transportadora?.email || ''}">
                         </div>
                         
                         <div class="form-group">
@@ -200,8 +213,8 @@ function showFormModal(editingId = null) {
                         </div>
                         
                         <div class="form-group">
-                            <label>Regiões de Atendimento</label>
-                            <div class="checkbox-group">
+                            <label>Regiões de Atendimento *</label>
+                            <div class="checkbox-group" id="regioesGroup">
                                 ${Object.keys(REGIOES_ESTADOS).map(regiao => `
                                     <div class="checkbox-item">
                                         <input type="checkbox" id="regiao_${regiao}" value="${regiao}" 
@@ -259,12 +272,20 @@ function showFormModal(editingId = null) {
         const regioes = Array.from(document.querySelectorAll('input[id^="regiao_"]:checked'))
             .map(checkbox => checkbox.value);
 
+        // Validação: pelo menos uma região deve ser selecionada
+        if (regioes.length === 0) {
+            showMessage('Selecione pelo menos uma região de atendimento', 'error');
+            return;
+        }
+
         const estados = Array.from(document.querySelectorAll('input[id^="estado_"]:checked'))
             .map(checkbox => checkbox.value);
 
+        const emailValue = document.getElementById('modalEmail').value.trim();
+
         const formData = {
             nome: document.getElementById('modalNome').value.trim(),
-            email: document.getElementById('modalEmail').value.trim().toLowerCase(),
+            email: emailValue ? emailValue.toLowerCase() : null,
             telefones,
             celulares,
             regioes,
@@ -286,6 +307,8 @@ function showFormModal(editingId = null) {
         }
 
         requestAnimationFrame(() => {
+            atualizarTransportadorasDisponiveis();
+            renderTransportadorasFilter();
             filterTransportadoras();
         });
         
@@ -296,6 +319,13 @@ function showFormModal(editingId = null) {
     cancelBtn.addEventListener('click', () => {
         showMessage(isEditing ? 'Atualização cancelada' : 'Cadastro cancelado', 'error');
         closeModal();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            showMessage(isEditing ? 'Atualização cancelada' : 'Cadastro cancelado', 'error');
+            closeModal();
+        }
     });
     
     setTimeout(() => document.getElementById('modalNome').focus(), 100);
@@ -463,6 +493,8 @@ async function loadTransportadoras() {
             console.log(`📊 ${data.length} transportadoras carregadas`);
             
             requestAnimationFrame(() => {
+                atualizarTransportadorasDisponiveis();
+                renderTransportadorasFilter();
                 filterTransportadoras();
             });
         }
@@ -477,6 +509,39 @@ function startPolling() {
         if (isOnline) loadTransportadoras();
     }, 10000);
 }
+
+function atualizarTransportadorasDisponiveis() {
+    transportadorasDisponiveis.clear();
+    transportadoras.forEach(t => {
+        if (t.nome && t.nome.trim()) transportadorasDisponiveis.add(t.nome.trim());
+    });
+}
+
+function renderTransportadorasFilter() {
+    const container = document.getElementById('transportadorasFilter');
+    if (!container) return;
+
+    const transportadorasArray = Array.from(transportadorasDisponiveis).sort();
+    
+    const fragment = document.createDocumentFragment();
+    
+    ['TODAS', ...transportadorasArray].forEach(transportadora => {
+        const button = document.createElement('button');
+        button.className = `brand-button ${transportadora === transportadoraSelecionada ? 'active' : ''}`;
+        button.textContent = transportadora;
+        button.onclick = () => window.selecionarTransportadora(transportadora);
+        fragment.appendChild(button);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(fragment);
+}
+
+window.selecionarTransportadora = function(transportadora) {
+    transportadoraSelecionada = transportadora;
+    renderTransportadorasFilter();
+    filterTransportadoras();
+};
 
 async function syncWithServer(formData, editId = null, tempId = null) {
     if (!isOnline) return;
@@ -512,6 +577,8 @@ async function syncWithServer(formData, editId = null, tempId = null) {
         lastDataHash = JSON.stringify(transportadoras.map(t => t.id));
         
         requestAnimationFrame(() => {
+            atualizarTransportadorasDisponiveis();
+            renderTransportadorasFilter();
             filterTransportadoras();
         });
     } catch (error) {
@@ -539,12 +606,17 @@ window.deleteTransportadora = async function(id) {
         type: 'warning'
     });
 
-    if (!confirmed) return;
+    if (!confirmed) {
+        console.log('Exclusão cancelada pelo usuário');
+        return;
+    }
 
     const deletedTransportadora = transportadoras.find(t => t.id === id);
     transportadoras = transportadoras.filter(t => t.id !== id);
     
     requestAnimationFrame(() => {
+        atualizarTransportadorasDisponiveis();
+        renderTransportadorasFilter();
         filterTransportadoras();
     });
     
@@ -568,6 +640,8 @@ window.deleteTransportadora = async function(id) {
             if (deletedTransportadora) {
                 transportadoras.push(deletedTransportadora);
                 requestAnimationFrame(() => {
+                    atualizarTransportadorasDisponiveis();
+                    renderTransportadorasFilter();
                     filterTransportadoras();
                 });
                 showMessage('Erro ao excluir', 'error');
@@ -580,10 +654,14 @@ function filterTransportadoras() {
     const searchTerm = document.getElementById('search').value.toLowerCase();
     let filtered = transportadoras;
 
+    if (transportadoraSelecionada !== 'TODAS') {
+        filtered = filtered.filter(t => t.nome === transportadoraSelecionada);
+    }
+
     if (searchTerm) {
         filtered = filtered.filter(t => 
             t.nome.toLowerCase().includes(searchTerm) ||
-            t.email.toLowerCase().includes(searchTerm) ||
+            (t.email && t.email.toLowerCase().includes(searchTerm)) ||
             (t.regioes && t.regioes.some(r => r.toLowerCase().includes(searchTerm))) ||
             (t.estados && t.estados.some(e => e.toLowerCase().includes(searchTerm)))
         );
@@ -620,13 +698,14 @@ function renderTransportadoras(transportadorasToRender) {
     const rows = transportadorasToRender.map(t => {
         const primeiroTelefone = t.telefones && t.telefones.length > 0 ? t.telefones[0] : '-';
         const primeiroCelular = t.celulares && t.celulares.length > 0 ? t.celulares[0] : '-';
+        const email = t.email || '-';
         
         return `
             <tr>
                 <td><strong>${t.nome}</strong></td>
                 <td>${primeiroTelefone}</td>
                 <td>${primeiroCelular}</td>
-                <td>${t.email}</td>
+                <td>${email}</td>
                 <td style="color: var(--text-secondary); font-size: 0.85rem;">${getTimeAgo(t.timestamp)}</td>
                 <td class="actions-cell" style="text-align: center;">
                     <button onclick="window.viewTransportadora('${t.id}')" class="action-btn view">Ver</button>
