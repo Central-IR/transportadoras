@@ -30,6 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function showConfirm(message, options = {}) {
     return new Promise((resolve) => {
+        // Remove qualquer modal de confirmação existente
+        const existingModal = document.getElementById('confirmModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
         const { title = 'Confirmação', confirmText = 'Confirmar', cancelText = 'Cancelar', type = 'warning' } = options;
 
         const modalHTML = `
@@ -52,9 +58,18 @@ function showConfirm(message, options = {}) {
         const confirmBtn = document.getElementById('modalConfirmBtn');
         const cancelBtn = document.getElementById('modalCancelBtn');
 
+        if (!modal || !confirmBtn || !cancelBtn) {
+            console.error('Erro: Elementos do modal não foram encontrados');
+            resolve(false);
+            return;
+        }
+
         const closeModal = (result) => {
             modal.style.animation = 'fadeOut 0.2s ease forwards';
-            setTimeout(() => { modal.remove(); resolve(result); }, 200);
+            setTimeout(() => { 
+                modal.remove(); 
+                resolve(result); 
+            }, 200);
         };
 
         confirmBtn.addEventListener('click', () => closeModal(true));
@@ -582,51 +597,80 @@ window.editTransportadora = function(id) {
 };
 
 window.deleteTransportadora = async function(id) {
-    const confirmed = await showConfirm('Tem certeza que deseja excluir esta transportadora?', {
-        title: 'Excluir Transportadora',
-        confirmText: 'Excluir',
-        cancelText: 'Cancelar',
-        type: 'warning'
-    });
-
-    if (!confirmed) return;
-
-    const deletedTransportadora = transportadoras.find(t => t.id === id);
-    transportadoras = transportadoras.filter(t => t.id !== id);
+    console.log('🗑️ [DELETE] Iniciando exclusão, ID:', id);
     
-    requestAnimationFrame(() => {
-        atualizarTransportadorasDisponiveis();
-        renderTransportadorasFilter();
-        filterTransportadoras();
-    });
-    
-    showMessage('Excluído!', 'error');
+    try {
+        console.log('🗑️ [DELETE] Chamando showConfirm...');
+        const confirmed = await showConfirm('Tem certeza que deseja excluir esta transportadora?', {
+            title: 'Excluir Transportadora',
+            confirmText: 'Excluir',
+            cancelText: 'Cancelar',
+            type: 'warning'
+        });
 
-    if (isOnline) {
-        try {
-            const response = await fetch(`${API_URL}/transportadoras/${id}`, { 
-                method: 'DELETE',
-                headers: { 'X-Session-Token': sessionToken }
-            });
+        console.log('🗑️ [DELETE] showConfirm retornou:', confirmed);
 
-            if (response.status === 401) {
-                sessionStorage.removeItem('transportadoraSession');
-                mostrarTelaAcessoNegado('Sua sessão expirou');
-                return;
-            }
-
-            if (!response.ok) throw new Error('Erro ao deletar');
-        } catch (error) {
-            if (deletedTransportadora) {
-                transportadoras.push(deletedTransportadora);
-                requestAnimationFrame(() => {
-                    atualizarTransportadorasDisponiveis();
-                    renderTransportadorasFilter();
-                    filterTransportadoras();
-                });
-                showMessage('Erro ao excluir', 'error');
-            }
+        if (!confirmed) {
+            console.log('🗑️ [DELETE] Exclusão cancelada pelo usuário');
+            return;
         }
+
+        console.log('🗑️ [DELETE] Prosseguindo com exclusão...');
+
+        const deletedTransportadora = transportadoras.find(t => t.id === id);
+        console.log('🗑️ [DELETE] Transportadora encontrada:', deletedTransportadora);
+        
+        transportadoras = transportadoras.filter(t => t.id !== id);
+        console.log('🗑️ [DELETE] Transportadora removida da lista local');
+        
+        requestAnimationFrame(() => {
+            atualizarTransportadorasDisponiveis();
+            renderTransportadorasFilter();
+            filterTransportadoras();
+            console.log('🗑️ [DELETE] Interface atualizada');
+        });
+        
+        showMessage('Excluído!', 'error');
+        console.log('🗑️ [DELETE] Mensagem exibida');
+
+        if (isOnline) {
+            console.log('🗑️ [DELETE] Enviando requisição ao servidor...');
+            try {
+                const response = await fetch(`${API_URL}/transportadoras/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'X-Session-Token': sessionToken }
+                });
+
+                console.log('🗑️ [DELETE] Resposta do servidor:', response.status);
+
+                if (response.status === 401) {
+                    sessionStorage.removeItem('transportadoraSession');
+                    mostrarTelaAcessoNegado('Sua sessão expirou');
+                    return;
+                }
+
+                if (!response.ok) throw new Error('Erro ao deletar');
+                
+                console.log('🗑️ [DELETE] Exclusão concluída com sucesso no servidor');
+            } catch (error) {
+                console.error('🗑️ [DELETE] Erro ao excluir no servidor:', error);
+                if (deletedTransportadora) {
+                    transportadoras.push(deletedTransportadora);
+                    requestAnimationFrame(() => {
+                        atualizarTransportadorasDisponiveis();
+                        renderTransportadorasFilter();
+                        filterTransportadoras();
+                    });
+                    showMessage('Erro ao excluir', 'error');
+                }
+            }
+        } else {
+            console.log('🗑️ [DELETE] Servidor offline, exclusão apenas local');
+        }
+        
+        console.log('🗑️ [DELETE] Processo de exclusão finalizado');
+    } catch (error) {
+        console.error('🗑️ [DELETE] ERRO CRÍTICO:', error);
     }
 };
 
