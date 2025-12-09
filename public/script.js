@@ -41,11 +41,11 @@ function showConfirm(message, options = {}) {
         overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:999999;';
 
         const box = document.createElement('div');
-        box.style.cssText = 'background:#2a2a2a;border-radius:16px;padding:2rem;max-width:450px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);';
+        box.style.cssText = 'background:#FFFFFF;border-radius:16px;padding:2rem;max-width:450px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);';
 
         box.innerHTML = `
-            <h3 style="color:#fff;margin:0 0 1rem 0;font-size:1.25rem;">${title}</h3>
-            <p style="color:#aaa;margin:0 0 2rem 0;">${message}</p>
+            <h3 style="color:#1A1A1A;margin:0 0 1rem 0;font-size:1.25rem;">${title}</h3>
+            <p style="color:#6B7280;margin:0 0 2rem 0;">${message}</p>
             <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
                 <button id="btnCancel" style="background:#4B5563;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-size:0.95rem;font-weight:600;min-width:100px;">${cancelText}</button>
                 <button id="btnConfirm" style="background:#e70000;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-size:0.95rem;font-weight:600;min-width:100px;">${confirmText}</button>
