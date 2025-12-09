@@ -3,52 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guia de Transportadoras</title>
+    <title>Transportadoras</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- SPLASH SCREEN -->
+    <!-- Splash Screen -->
     <div class="splash-screen">
-        <h1 class="splash-title">Transportadoras</h1>
+        <h1 class="splash-title">TRANSPORTADORAS</h1>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL -->
+    <!-- Conteúdo Principal -->
     <div class="app-content">
         <div class="container">
-            <!-- CABEÇALHO -->
-            <div class="card">
-                <div class="header">
-                    <h1>Transportadoras</h1>
-                    <div class="connection-status offline" id="connectionStatus">
+            <!-- Header com título e status -->
+            <div class="header">
+                <h1>
+                    Transportadoras
+                    <div class="connection-status" id="connectionStatus">
                         <div class="status-dot"></div>
                     </div>
-                </div>
+                </h1>
             </div>
 
-            <!-- FILTRO DE PESQUISA -->
+            <!-- Filtro por Transportadora -->
             <div class="card filter-section">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label for="search">Pesquisar</label>
-                    <input 
-                        type="text" 
-                        id="search" 
-                        placeholder="Digite o nome, e-mail ou região..." 
-                        oninput="filterTransportadoras()"
-                    >
-                </div>
+                <h3>Filtrar por Transportadora</h3>
+                <div id="transportadorasFilter"></div>
             </div>
 
-            <!-- LISTAGEM -->
+            <!-- Campo de Busca -->
             <div class="card">
-                <div id="transportadorasContainer">
-                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        Carregando...
-                    </div>
-                </div>
+                <input 
+                    type="text" 
+                    id="search" 
+                    placeholder="Buscar por nome, e-mail, região ou estado..." 
+                    oninput="filterTransportadoras()"
+                    style="margin-bottom: 0;"
+                >
+            </div>
+
+            <!-- Listagem de Transportadoras -->
+            <div class="card">
+                <div id="transportadorasContainer"></div>
             </div>
         </div>
 
-        <!-- BOTÃO FLUTUANTE -->
+        <!-- Botão Flutuante para Adicionar -->
         <button class="floating-add-btn" onclick="toggleForm()" title="Adicionar Transportadora">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
