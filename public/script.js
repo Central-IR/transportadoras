@@ -31,55 +31,44 @@ document.addEventListener('DOMContentLoaded', () => {
 function showConfirm(message, options = {}) {
     return new Promise((resolve) => {
         const { title = 'Confirmação', confirmText = 'Confirmar', cancelText = 'Cancelar', type = 'warning' } = options;
+        
+        // Gera um ID único para este modal
+        const modalId = 'confirmModal_' + Date.now();
 
         const modalHTML = `
-            <div class="modal-overlay" id="confirmModal">
-                <div class="modal-content">
+            <div class="modal-overlay" id="${modalId}" style="z-index: 99999;">
+                <div class="modal-content" style="z-index: 100000;">
                     <div class="modal-header">
                         <h3 class="modal-title">${title}</h3>
                     </div>
                     <p class="modal-message">${message}</p>
-                    <div class="modal-actions">
-                        <button type="button" class="secondary" id="modalCancelBtn">${cancelText}</button>
-                        <button type="button" class="${type === 'warning' ? 'danger' : 'success'}" id="modalConfirmBtn">${confirmText}</button>
+                    <div class="modal-actions" style="z-index: 100001;">
+                        <button type="button" class="secondary" style="z-index: 100002; pointer-events: auto;" onclick="window.closeConfirmModal_${modalId}(false)">
+                            ${cancelText}
+                        </button>
+                        <button type="button" class="${type === 'warning' ? 'danger' : 'success'}" style="z-index: 100002; pointer-events: auto;" onclick="window.closeConfirmModal_${modalId}(true)">
+                            ${confirmText}
+                        </button>
                     </div>
                 </div>
             </div>
         `;
 
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        const modal = document.getElementById('confirmModal');
-        const confirmBtn = document.getElementById('modalConfirmBtn');
-        const cancelBtn = document.getElementById('modalCancelBtn');
-
-        const closeModal = (result) => {
-            modal.style.animation = 'fadeOut 0.2s ease forwards';
-            setTimeout(() => { 
-                modal.remove(); 
-                resolve(result); 
-            }, 200);
+        // Cria função global temporária para fechar o modal
+        window[`closeConfirmModal_${modalId}`] = (result) => {
+            console.log('🔘 Botão clicado, resultado:', result);
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.2s ease forwards';
+                setTimeout(() => { 
+                    modal.remove();
+                    delete window[`closeConfirmModal_${modalId}`];
+                    resolve(result); 
+                }, 200);
+            }
         };
 
-        // Event listeners com preventDefault para garantir o comportamento
-        confirmBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            closeModal(true);
-        });
-        
-        cancelBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            closeModal(false);
-        });
-
-        // Não fecha ao clicar no overlay para evitar fechamento acidental
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
 
         if (!document.querySelector('#modalAnimations')) {
             const style = document.createElement('style');
