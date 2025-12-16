@@ -11,13 +11,18 @@ let transportadorasDisponiveis = new Set();
 let lastDataHash = '';
 let sessionToken = null;
 
+// Função auxiliar para converter texto para maiúsculas
+function toUpperCase(value) {
+    return value ? String(value).toUpperCase() : '';
+}
+
 // Regiões e Estados do Brasil
 const REGIOES_ESTADOS = {
-    'Norte': ['Acre', 'Amapá', 'Amazonas', 'Pará', 'Rondônia', 'Roraima', 'Tocantins'],
-    'Nordeste': ['Alagoas', 'Bahia', 'Ceará', 'Maranhão', 'Paraíba', 'Pernambuco', 'Piauí', 'Rio Grande do Norte', 'Sergipe'],
-    'Centro-Oeste': ['Distrito Federal', 'Goiás', 'Mato Grosso', 'Mato Grosso do Sul'],
-    'Sudeste': ['Espírito Santo', 'Minas Gerais', 'Rio de Janeiro', 'São Paulo'],
-    'Sul': ['Paraná', 'Rio Grande do Sul', 'Santa Catarina']
+    'NORTE': ['ACRE', 'AMAPÁ', 'AMAZONAS', 'PARÁ', 'RONDÔNIA', 'RORAIMA', 'TOCANTINS'],
+    'NORDESTE': ['ALAGOAS', 'BAHIA', 'CEARÁ', 'MARANHÃO', 'PARAÍBA', 'PERNAMBUCO', 'PIAUÍ', 'RIO GRANDE DO NORTE', 'SERGIPE'],
+    'CENTRO-OESTE': ['DISTRITO FEDERAL', 'GOIÁS', 'MATO GROSSO', 'MATO GROSSO DO SUL'],
+    'SUDESTE': ['ESPÍRITO SANTO', 'MINAS GERAIS', 'RIO DE JANEIRO', 'SÃO PAULO'],
+    'SUL': ['PARANÁ', 'RIO GRANDE DO SUL', 'SANTA CATARINA']
 };
 
 const TODOS_ESTADOS = Object.values(REGIOES_ESTADOS).flat();
@@ -28,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     verificarAutenticacao();
 });
 
-// MODAL DE CONFIRMAÇÃO - VERSÃO QUE FUNCIONA 100%
+// MODAL DE CONFIRMAÇÃO
 function showConfirm(message, options = {}) {
     return new Promise((resolve) => {
         const existingModal = document.getElementById('confirmModal');
@@ -69,62 +74,62 @@ function showViewModal(id) {
     if (!transportadora) return;
 
     const telefones = transportadora.telefones && transportadora.telefones.length > 0
-        ? transportadora.telefones.map(t => `<p>${t}</p>`).join('')
-        : '<p class="empty">Nenhum telefone cadastrado</p>';
+        ? transportadora.telefones.map(t => `<p>${toUpperCase(t)}</p>`).join('')
+        : '<p class="empty">NENHUM TELEFONE CADASTRADO</p>';
 
     const celulares = transportadora.celulares && transportadora.celulares.length > 0
-        ? transportadora.celulares.map(c => `<p>${c}</p>`).join('')
-        : '<p class="empty">Nenhum celular cadastrado</p>';
+        ? transportadora.celulares.map(c => `<p>${toUpperCase(c)}</p>`).join('')
+        : '<p class="empty">NENHUM CELULAR CADASTRADO</p>';
 
     const regioes = transportadora.regioes && transportadora.regioes.length > 0
-        ? transportadora.regioes.join(', ')
-        : '<span class="empty">Nenhuma região selecionada</span>';
+        ? transportadora.regioes.map(r => toUpperCase(r)).join(', ')
+        : '<span class="empty">NENHUMA REGIÃO SELECIONADA</span>';
 
     const estados = transportadora.estados && transportadora.estados.length > 0
-        ? transportadora.estados.join(', ')
-        : '<span class="empty">Nenhum estado selecionado</span>';
+        ? transportadora.estados.map(e => toUpperCase(e)).join(', ')
+        : '<span class="empty">NENHUM ESTADO SELECIONADO</span>';
 
-    const email = transportadora.email || '<span class="empty">Não informado</span>';
+    const email = transportadora.email ? transportadora.email.toLowerCase() : '<span class="empty">NÃO INFORMADO</span>';
 
     const modalHTML = `
         <div class="modal-overlay" id="viewModal">
             <div class="modal-content large">
                 <div class="modal-header">
-                    <h3 class="modal-title">Detalhes da Transportadora</h3>
+                    <h3 class="modal-title">DETALHES DA TRANSPORTADORA</h3>
                 </div>
                 <div class="modal-form-content">
                     <div class="view-section">
-                        <h4>Nome</h4>
-                        <p>${transportadora.nome}</p>
+                        <h4>NOME</h4>
+                        <p>${toUpperCase(transportadora.nome)}</p>
                     </div>
                     
                     <div class="view-section">
-                        <h4>E-mail</h4>
+                        <h4>E-MAIL</h4>
                         <p>${email}</p>
                     </div>
                     
                     <div class="view-section">
-                        <h4>Telefones</h4>
+                        <h4>TELEFONES</h4>
                         ${telefones}
                     </div>
                     
                     <div class="view-section">
-                        <h4>Celulares</h4>
+                        <h4>CELULARES</h4>
                         ${celulares}
                     </div>
                     
                     <div class="view-section">
-                        <h4>Regiões de Atendimento</h4>
+                        <h4>REGIÕES DE ATENDIMENTO</h4>
                         <p>${regioes}</p>
                     </div>
                     
                     <div class="view-section">
-                        <h4>Estados de Atendimento</h4>
+                        <h4>ESTADOS DE ATENDIMENTO</h4>
                         <p>${estados}</p>
                     </div>
                     
                     <div class="modal-actions">
-                        <button class="secondary" id="modalCloseBtn">Fechar</button>
+                        <button class="secondary" id="modalCloseBtn">FECHAR</button>
                     </div>
                 </div>
             </div>
@@ -149,84 +154,97 @@ function showFormModal(editingId = null) {
 
     const telefones = transportadora?.telefones || [''];
     const celulares = transportadora?.celulares || [''];
-    const regioesSelecionadas = transportadora?.regioes || [];
-    const estadosSelecionados = transportadora?.estados || [];
+    const regioesSelecionadas = transportadora?.regioes?.map(r => toUpperCase(r)) || [];
+    const estadosSelecionados = transportadora?.estados?.map(e => toUpperCase(e)) || [];
 
     const modalHTML = `
         <div class="modal-overlay" id="formModal">
             <div class="modal-content large">
                 <div class="modal-header">
-                    <h3 class="modal-title">${isEditing ? 'Editar Transportadora' : 'Cadastrar Transportadora'}</h3>
+                    <h3 class="modal-title">${isEditing ? 'EDITAR TRANSPORTADORA' : 'CADASTRAR TRANSPORTADORA'}</h3>
                 </div>
-                <div class="modal-form-content">
+                
+                <div class="tabs-container">
+                    <div class="tabs-nav">
+                        <button class="tab-btn active" onclick="switchTab('tab-geral')">GERAL</button>
+                        <button class="tab-btn" onclick="switchTab('tab-regioes')">REGIÕES</button>
+                        <button class="tab-btn" onclick="switchTab('tab-estados')">ESTADOS</button>
+                    </div>
+
                     <form id="modalTransportadoraForm">
                         <input type="hidden" id="modalEditId" value="${editingId || ''}">
                         
-                        <div class="form-group">
-                            <label for="modalNome">Nome da Transportadora *</label>
-                            <input type="text" id="modalNome" value="${transportadora?.nome || ''}" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="modalEmail">E-mail</label>
-                            <input type="email" id="modalEmail" value="${transportadora?.email || ''}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Telefones</label>
-                            <div id="telefonesContainer">
-                                ${telefones.map((tel, i) => `
-                                    <div class="dynamic-field">
-                                        <input type="tel" class="telefone-input" value="${tel}" placeholder="(00) 0000-0000">
-                                        ${i > 0 ? '<button type="button" class="danger small" onclick="removeField(this)">Remover</button>' : ''}
-                                    </div>
-                                `).join('')}
+                        <div class="tab-content active" id="tab-geral">
+                            <div class="form-group">
+                                <label for="modalNome">NOME DA TRANSPORTADORA *</label>
+                                <input type="text" id="modalNome" value="${toUpperCase(transportadora?.nome || '')}" required>
                             </div>
-                            <button type="button" class="add-field-btn small" onclick="addTelefone()">+ Adicionar Telefone</button>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Celulares</label>
-                            <div id="celularesContainer">
-                                ${celulares.map((cel, i) => `
-                                    <div class="dynamic-field">
-                                        <input type="tel" class="celular-input" value="${cel}" placeholder="(00) 00000-0000">
-                                        ${i > 0 ? '<button type="button" class="danger small" onclick="removeField(this)">Remover</button>' : ''}
-                                    </div>
-                                `).join('')}
+                            
+                            <div class="form-group">
+                                <label for="modalEmail">E-MAIL</label>
+                                <input type="email" id="modalEmail" value="${transportadora?.email || ''}" style="text-transform: lowercase;">
                             </div>
-                            <button type="button" class="add-field-btn small" onclick="addCelular()">+ Adicionar Celular</button>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Regiões de Atendimento *</label>
-                            <div class="checkbox-group" id="regioesGroup">
-                                ${Object.keys(REGIOES_ESTADOS).map(regiao => `
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="regiao_${regiao}" value="${regiao}" 
-                                            ${regioesSelecionadas.includes(regiao) ? 'checked' : ''}>
-                                        <label for="regiao_${regiao}">${regiao}</label>
-                                    </div>
-                                `).join('')}
+                            
+                            <div class="form-group">
+                                <label>TELEFONES</label>
+                                <div id="telefonesContainer">
+                                    ${telefones.map((tel, i) => `
+                                        <div class="dynamic-field">
+                                            <input type="tel" class="telefone-input" value="${toUpperCase(tel)}" placeholder="(00) 0000-0000">
+                                            ${i > 0 ? '<button type="button" class="danger small" onclick="removeField(this)">REMOVER</button>' : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button type="button" class="add-field-btn small" onclick="addTelefone()">+ ADICIONAR TELEFONE</button>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>CELULARES</label>
+                                <div id="celularesContainer">
+                                    ${celulares.map((cel, i) => `
+                                        <div class="dynamic-field">
+                                            <input type="tel" class="celular-input" value="${toUpperCase(cel)}" placeholder="(00) 00000-0000">
+                                            ${i > 0 ? '<button type="button" class="danger small" onclick="removeField(this)">REMOVER</button>' : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button type="button" class="add-field-btn small" onclick="addCelular()">+ ADICIONAR CELULAR</button>
                             </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label>Estados de Atendimento</label>
-                            <div class="checkbox-group">
-                                ${TODOS_ESTADOS.map(estado => `
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="estado_${estado.replace(/\s/g, '_')}" value="${estado}" 
-                                            ${estadosSelecionados.includes(estado) ? 'checked' : ''}>
-                                        <label for="estado_${estado.replace(/\s/g, '_')}">${estado}</label>
-                                    </div>
-                                `).join('')}
+
+                        <div class="tab-content" id="tab-regioes">
+                            <div class="form-group">
+                                <label>REGIÕES DE ATENDIMENTO</label>
+                                <div class="selection-grid" id="regioesGrid">
+                                    ${Object.keys(REGIOES_ESTADOS).map(regiao => `
+                                        <div class="selection-item ${regioesSelecionadas.includes(regiao) ? 'selected' : ''}" 
+                                             data-regiao="${regiao}"
+                                             onclick="toggleRegiao('${regiao}')">
+                                            ${regiao}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="tab-estados">
+                            <div class="form-group">
+                                <label>ESTADOS DE ATENDIMENTO</label>
+                                <div class="selection-grid" id="estadosGrid">
+                                    ${TODOS_ESTADOS.map(estado => `
+                                        <div class="selection-item ${estadosSelecionados.includes(estado) ? 'selected' : ''}" 
+                                             data-estado="${estado}"
+                                             onclick="toggleEstado('${estado}')">
+                                            ${estado}
+                                        </div>
+                                    `).join('')}
+                                </div>
                             </div>
                         </div>
                         
                         <div class="modal-actions">
-                            <button type="button" class="secondary" id="modalCancelFormBtn">Cancelar</button>
-                            <button type="submit" class="save">${isEditing ? 'Atualizar' : 'Salvar'}</button>
+                            <button type="button" class="secondary" id="modalCancelFormBtn">CANCELAR</button>
+                            <button type="submit" class="save">${isEditing ? 'ATUALIZAR' : 'SALVAR'}</button>
                         </div>
                     </form>
                 </div>
@@ -248,28 +266,23 @@ function showFormModal(editingId = null) {
         e.preventDefault();
 
         const telefones = Array.from(document.querySelectorAll('.telefone-input'))
-            .map(input => input.value.trim())
+            .map(input => toUpperCase(input.value.trim()))
             .filter(val => val);
 
         const celulares = Array.from(document.querySelectorAll('.celular-input'))
-            .map(input => input.value.trim())
+            .map(input => toUpperCase(input.value.trim()))
             .filter(val => val);
 
-        const regioes = Array.from(document.querySelectorAll('input[id^="regiao_"]:checked'))
-            .map(checkbox => checkbox.value);
+        const regioes = Array.from(document.querySelectorAll('#regioesGrid .selection-item.selected'))
+            .map(item => item.dataset.regiao);
 
-        if (regioes.length === 0) {
-            showMessage('Selecione pelo menos uma região de atendimento', 'error');
-            return;
-        }
-
-        const estados = Array.from(document.querySelectorAll('input[id^="estado_"]:checked'))
-            .map(checkbox => checkbox.value);
+        const estados = Array.from(document.querySelectorAll('#estadosGrid .selection-item.selected'))
+            .map(item => item.dataset.estado);
 
         const emailValue = document.getElementById('modalEmail').value.trim();
 
         const formData = {
-            nome: document.getElementById('modalNome').value.trim(),
+            nome: toUpperCase(document.getElementById('modalNome').value.trim()),
             email: emailValue ? emailValue.toLowerCase() : null,
             telefones,
             celulares,
@@ -285,10 +298,10 @@ function showFormModal(editingId = null) {
         if (editId) {
             const index = transportadoras.findIndex(t => t.id === editId);
             if (index !== -1) transportadoras[index] = optimisticData;
-            showMessage('Atualizado!', 'success');
+            showMessage('ATUALIZADO!', 'success');
         } else {
             transportadoras.push(optimisticData);
-            showMessage('Criado!', 'success');
+            showMessage('CRIADO!', 'success');
         }
 
         requestAnimationFrame(() => {
@@ -302,12 +315,39 @@ function showFormModal(editingId = null) {
     });
 
     cancelBtn.addEventListener('click', () => {
-        showMessage(isEditing ? 'Atualização cancelada' : 'Cadastro cancelado', 'error');
+        showMessage(isEditing ? 'ATUALIZAÇÃO CANCELADA' : 'CADASTRO CANCELADO', 'error');
         closeModal();
     });
     
     setTimeout(() => document.getElementById('modalNome').focus(), 100);
 }
+
+// SISTEMA DE ABAS
+window.switchTab = function(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    const clickedBtn = event.target;
+    if (clickedBtn) clickedBtn.classList.add('active');
+    
+    document.getElementById(tabId).classList.add('active');
+};
+
+// TOGGLE REGIÃO
+window.toggleRegiao = function(regiao) {
+    const item = document.querySelector(`[data-regiao="${regiao}"]`);
+    if (item) {
+        item.classList.toggle('selected');
+    }
+};
+
+// TOGGLE ESTADO
+window.toggleEstado = function(estado) {
+    const item = document.querySelector(`[data-estado="${estado}"]`);
+    if (item) {
+        item.classList.toggle('selected');
+    }
+};
 
 window.addTelefone = function() {
     const container = document.getElementById('telefonesContainer');
@@ -315,7 +355,7 @@ window.addTelefone = function() {
     newField.className = 'dynamic-field';
     newField.innerHTML = `
         <input type="tel" class="telefone-input" placeholder="(00) 0000-0000">
-        <button type="button" class="danger small" onclick="removeField(this)">Remover</button>
+        <button type="button" class="danger small" onclick="removeField(this)">REMOVER</button>
     `;
     container.appendChild(newField);
 };
@@ -326,7 +366,7 @@ window.addCelular = function() {
     newField.className = 'dynamic-field';
     newField.innerHTML = `
         <input type="tel" class="celular-input" placeholder="(00) 00000-0000">
-        <button type="button" class="danger small" onclick="removeField(this)">Remover</button>
+        <button type="button" class="danger small" onclick="removeField(this)">REMOVER</button>
     `;
     container.appendChild(newField);
 };
@@ -341,7 +381,7 @@ function verificarAutenticacao() {
 
     if (tokenFromUrl) {
         sessionToken = tokenFromUrl;
-        sessionStorage.setItem('transportadoraSession', sessionToken);
+        sessionStorage.setItem('transportadoraSession', tokenFromUrl);
         window.history.replaceState({}, document.title, window.location.pathname);
     } else {
         sessionToken = sessionStorage.getItem('transportadoraSession');
@@ -382,7 +422,7 @@ function mostrarTelaAcessoNegado(mensagem = 'NÃO AUTORIZADO') {
                 border-radius: 8px;
                 text-decoration: none;
                 font-weight: 600;
-            ">Ir para o Portal</a>
+            ">IR PARA O PORTAL</a>
         </div>
     `;
 }
@@ -412,7 +452,7 @@ async function checkServerStatus() {
 
         if (response.status === 401) {
             sessionStorage.removeItem('transportadoraSession');
-            mostrarTelaAcessoNegado('Sua sessão expirou');
+            mostrarTelaAcessoNegado('SUA SESSÃO EXPIROU');
             return false;
         }
 
@@ -455,7 +495,7 @@ async function loadTransportadoras() {
 
         if (response.status === 401) {
             sessionStorage.removeItem('transportadoraSession');
-            mostrarTelaAcessoNegado('Sua sessão expirou');
+            mostrarTelaAcessoNegado('SUA SESSÃO EXPIROU');
             return;
         }
 
@@ -491,7 +531,7 @@ function startPolling() {
 function atualizarTransportadorasDisponiveis() {
     transportadorasDisponiveis.clear();
     transportadoras.forEach(t => {
-        if (t.nome && t.nome.trim()) transportadorasDisponiveis.add(t.nome.trim());
+        if (t.nome && t.nome.trim()) transportadorasDisponiveis.add(toUpperCase(t.nome.trim()));
     });
 }
 
@@ -536,7 +576,7 @@ async function syncWithServer(formData, editId = null, tempId = null) {
 
         if (response.status === 401) {
             sessionStorage.removeItem('transportadoraSession');
-            mostrarTelaAcessoNegado('Sua sessão expirou');
+            mostrarTelaAcessoNegado('SUA SESSÃO EXPIROU');
             return;
         }
         
@@ -564,7 +604,7 @@ async function syncWithServer(formData, editId = null, tempId = null) {
             transportadoras = transportadoras.filter(t => t.id !== tempId);
             filterTransportadoras();
         }
-        showMessage('Erro ao salvar', 'error');
+        showMessage('ERRO AO SALVAR', 'error');
     }
 }
 
@@ -577,10 +617,10 @@ window.editTransportadora = function(id) {
 };
 
 window.deleteTransportadora = async function(id) {
-    const confirmed = await showConfirm('Tem certeza que deseja excluir esta transportadora?', {
-        title: 'Excluir Transportadora',
-        confirmText: 'Excluir',
-        cancelText: 'Cancelar',
+    const confirmed = await showConfirm('TEM CERTEZA QUE DESEJA EXCLUIR ESTA TRANSPORTADORA?', {
+        title: 'EXCLUIR TRANSPORTADORA',
+        confirmText: 'EXCLUIR',
+        cancelText: 'CANCELAR',
         type: 'warning'
     });
 
@@ -595,7 +635,7 @@ window.deleteTransportadora = async function(id) {
         filterTransportadoras();
     });
     
-    showMessage('Excluído!', 'error');
+    showMessage('EXCLUÍDO!', 'error');
 
     if (isOnline) {
         try {
@@ -606,7 +646,7 @@ window.deleteTransportadora = async function(id) {
 
             if (response.status === 401) {
                 sessionStorage.removeItem('transportadoraSession');
-                mostrarTelaAcessoNegado('Sua sessão expirou');
+                mostrarTelaAcessoNegado('SUA SESSÃO EXPIROU');
                 return;
             }
 
@@ -619,7 +659,7 @@ window.deleteTransportadora = async function(id) {
                     renderTransportadorasFilter();
                     filterTransportadoras();
                 });
-                showMessage('Erro ao excluir', 'error');
+                showMessage('ERRO AO EXCLUIR', 'error');
             }
         }
     }
@@ -630,35 +670,35 @@ function filterTransportadoras() {
     let filtered = transportadoras;
 
     if (transportadoraSelecionada !== 'TODAS') {
-        filtered = filtered.filter(t => t.nome === transportadoraSelecionada);
+        filtered = filtered.filter(t => toUpperCase(t.nome) === transportadoraSelecionada);
     }
 
     if (searchTerm) {
         filtered = filtered.filter(t => 
-            t.nome.toLowerCase().includes(searchTerm) ||
+            toUpperCase(t.nome).toLowerCase().includes(searchTerm) ||
             (t.email && t.email.toLowerCase().includes(searchTerm)) ||
-            (t.regioes && t.regioes.some(r => r.toLowerCase().includes(searchTerm))) ||
-            (t.estados && t.estados.some(e => e.toLowerCase().includes(searchTerm)))
+            (t.regioes && t.regioes.some(r => toUpperCase(r).toLowerCase().includes(searchTerm))) ||
+            (t.estados && t.estados.some(e => toUpperCase(e).toLowerCase().includes(searchTerm)))
         );
     }
 
-    filtered.sort((a, b) => a.nome.localeCompare(b.nome));
+    filtered.sort((a, b) => toUpperCase(a.nome).localeCompare(toUpperCase(b.nome)));
 
     renderTransportadoras(filtered);
 }
 
 function getTimeAgo(timestamp) {
-    if (!timestamp) return 'Sem data';
+    if (!timestamp) return 'SEM DATA';
     const now = new Date();
     const past = new Date(timestamp);
     const diffInSeconds = Math.floor((now - past) / 1000);
-    if (diffInSeconds < 60) return `${diffInSeconds}s`;
+    if (diffInSeconds < 60) return `${diffInSeconds}S`;
     const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes}min`;
+    if (diffInMinutes < 60) return `${diffInMinutes}MIN`;
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h`;
+    if (diffInHours < 24) return `${diffInHours}H`;
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d`;
+    if (diffInDays < 7) return `${diffInDays}D`;
     return past.toLocaleDateString('pt-BR');
 }
 
@@ -666,26 +706,26 @@ function renderTransportadoras(transportadorasToRender) {
     const container = document.getElementById('transportadorasContainer');
     
     if (!transportadorasToRender || transportadorasToRender.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">Nenhuma transportadora encontrada</div>';
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">NENHUMA TRANSPORTADORA ENCONTRADA</div>';
         return;
     }
 
     const rows = transportadorasToRender.map(t => {
-        const primeiroTelefone = t.telefones && t.telefones.length > 0 ? t.telefones[0] : '-';
-        const primeiroCelular = t.celulares && t.celulares.length > 0 ? t.celulares[0] : '-';
+        const primeiroTelefone = t.telefones && t.telefones.length > 0 ? toUpperCase(t.telefones[0]) : '-';
+        const primeiroCelular = t.celulares && t.celulares.length > 0 ? toUpperCase(t.celulares[0]) : '-';
         const email = t.email || '-';
         
         return `
             <tr>
-                <td><strong>${t.nome}</strong></td>
+                <td><strong>${toUpperCase(t.nome)}</strong></td>
                 <td>${primeiroTelefone}</td>
                 <td>${primeiroCelular}</td>
-                <td>${email}</td>
+                <td style="text-transform: lowercase;">${email}</td>
                 <td style="color: var(--text-secondary); font-size: 0.85rem;">${getTimeAgo(t.timestamp)}</td>
                 <td class="actions-cell" style="text-align: center;">
-                    <button onclick="window.viewTransportadora('${t.id}')" class="action-btn view">Ver</button>
-                    <button onclick="window.editTransportadora('${t.id}')" class="action-btn edit">Editar</button>
-                    <button onclick="window.deleteTransportadora('${t.id}')" class="action-btn delete">Excluir</button>
+                    <button onclick="window.viewTransportadora('${t.id}')" class="action-btn view">VER</button>
+                    <button onclick="window.editTransportadora('${t.id}')" class="action-btn edit">EDITAR</button>
+                    <button onclick="window.deleteTransportadora('${t.id}')" class="action-btn delete">EXCLUIR</button>
                 </td>
             </tr>
         `;
@@ -696,12 +736,12 @@ function renderTransportadoras(transportadorasToRender) {
             <table>
                 <thead>
                     <tr>
-                        <th>Nome</th>
-                        <th>Telefone</th>
-                        <th>Celular</th>
-                        <th>E-mail</th>
-                        <th>Alteração</th>
-                        <th style="text-align: center;">Ações</th>
+                        <th>NOME</th>
+                        <th>TELEFONE</th>
+                        <th>CELULAR</th>
+                        <th>E-MAIL</th>
+                        <th>ALTERAÇÃO</th>
+                        <th style="text-align: center;">AÇÕES</th>
                     </tr>
                 </thead>
                 <tbody>${rows}</tbody>
