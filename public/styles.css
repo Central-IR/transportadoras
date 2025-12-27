@@ -572,6 +572,19 @@ tbody tr:hover { background: var(--table-hover); }
     opacity: 1;
 }
 
+/* BLOCOS DE VISUALIZAÇÃO - Apenas itens selecionados */
+.selection-item-view {
+    padding: 12px 16px;
+    background: var(--input-bg);
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    text-transform: uppercase;
+}
+
 /* MODAL DE VISUALIZAÇÃO */
 .view-section {
     margin-bottom: 1.5rem;
