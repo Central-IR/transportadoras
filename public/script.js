@@ -81,19 +81,31 @@ function showViewModal(id) {
         ? transportadora.celulares.map(c => `<p>${toUpperCase(c)}</p>`).join('')
         : '<p class="empty">NENHUM CELULAR CADASTRADO</p>';
 
-    const regioes = transportadora.regioes && transportadora.regioes.length > 0
-        ? transportadora.regioes.map(r => `<p>${toUpperCase(r)}</p>`).join('')
+    // REGIÕES - Mostrar selecionadas em grid
+    const regioesHTML = transportadora.regioes && transportadora.regioes.length > 0
+        ? `<div class="selection-grid view-mode">
+            ${Object.keys(REGIOES_ESTADOS).map(regiao => {
+                const isSelected = transportadora.regioes.includes(regiao);
+                return `<div class="selection-item ${isSelected ? 'selected' : 'disabled'}">${regiao}</div>`;
+            }).join('')}
+           </div>`
         : '<p class="empty">NENHUMA REGIÃO SELECIONADA</p>';
 
-    const estados = transportadora.estados && transportadora.estados.length > 0
-        ? transportadora.estados.map(e => `<p>${toUpperCase(e)}</p>`).join('')
+    // ESTADOS - Mostrar selecionados em grid
+    const estadosHTML = transportadora.estados && transportadora.estados.length > 0
+        ? `<div class="selection-grid view-mode">
+            ${TODOS_ESTADOS.map(estado => {
+                const isSelected = transportadora.estados.includes(estado);
+                return `<div class="selection-item ${isSelected ? 'selected' : 'disabled'}">${estado}</div>`;
+            }).join('')}
+           </div>`
         : '<p class="empty">NENHUM ESTADO SELECIONADO</p>';
 
     const email = transportadora.email ? transportadora.email.toLowerCase() : '<span class="empty">NÃO INFORMADO</span>';
 
     const modalHTML = `
         <div class="modal-overlay" id="viewModal">
-            <div class="modal-content large">
+            <div class="modal-content extra-large">
                 <div class="modal-header">
                     <h3 class="modal-title">DETALHES DA TRANSPORTADORA</h3>
                 </div>
@@ -134,14 +146,14 @@ function showViewModal(id) {
                         <div class="tab-content" id="view-tab-regioes">
                             <div class="view-section">
                                 <h4>REGIÕES DE ATENDIMENTO</h4>
-                                ${regioes}
+                                ${regioesHTML}
                             </div>
                         </div>
 
                         <div class="tab-content" id="view-tab-estados">
                             <div class="view-section">
                                 <h4>ESTADOS DE ATENDIMENTO</h4>
-                                ${estados}
+                                ${estadosHTML}
                             </div>
                         </div>
                     </div>
@@ -177,7 +189,7 @@ function showFormModal(editingId = null) {
 
     const modalHTML = `
         <div class="modal-overlay" id="formModal">
-            <div class="modal-content large">
+            <div class="modal-content extra-large">
                 <div class="modal-header">
                     <h3 class="modal-title">${isEditing ? 'EDITAR TRANSPORTADORA' : 'CADASTRAR TRANSPORTADORA'}</h3>
                 </div>
