@@ -81,23 +81,21 @@ function showViewModal(id) {
         ? transportadora.celulares.map(c => `<p>${toUpperCase(c)}</p>`).join('')
         : '<p class="empty">NENHUM CELULAR CADASTRADO</p>';
 
-    // REGIÕES - Mostrar selecionadas em grid
+    // REGIÕES - Mostrar apenas selecionadas em blocos
     const regioesHTML = transportadora.regioes && transportadora.regioes.length > 0
         ? `<div class="selection-grid view-mode">
-            ${Object.keys(REGIOES_ESTADOS).map(regiao => {
-                const isSelected = transportadora.regioes.includes(regiao);
-                return `<div class="selection-item ${isSelected ? 'selected' : 'disabled'}">${regiao}</div>`;
-            }).join('')}
+            ${transportadora.regioes.map(regiao => 
+                `<div class="selection-item-view">${toUpperCase(regiao)}</div>`
+            ).join('')}
            </div>`
         : '<p class="empty">NENHUMA REGIÃO SELECIONADA</p>';
 
-    // ESTADOS - Mostrar selecionados em grid
+    // ESTADOS - Mostrar apenas selecionados em blocos
     const estadosHTML = transportadora.estados && transportadora.estados.length > 0
         ? `<div class="selection-grid view-mode">
-            ${TODOS_ESTADOS.map(estado => {
-                const isSelected = transportadora.estados.includes(estado);
-                return `<div class="selection-item ${isSelected ? 'selected' : 'disabled'}">${estado}</div>`;
-            }).join('')}
+            ${transportadora.estados.map(estado => 
+                `<div class="selection-item-view">${toUpperCase(estado)}</div>`
+            ).join('')}
            </div>`
         : '<p class="empty">NENHUM ESTADO SELECIONADO</p>';
 
