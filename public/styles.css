@@ -378,6 +378,7 @@ tbody tr:hover { background: var(--table-hover); }
 }
 
 .modal-content.large { max-width: 900px; }
+.modal-content.extra-large { max-width: 1400px; width: 95%; }
 
 @keyframes scaleIn { to { transform: scale(1); } }
 
@@ -517,7 +518,7 @@ tbody tr:hover { background: var(--table-hover); }
     margin-top: 0.5rem;
 }
 
-/* SELEÇÃO DE REGIÕES E ESTADOS - SEM CHECKBOX */
+/* SELEÇÃO DE REGIÕES E ESTADOS */
 .selection-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -549,6 +550,26 @@ tbody tr:hover { background: var(--table-hover); }
     background: var(--primary);
     border-color: var(--primary);
     color: white;
+}
+
+/* MODO VISUALIZAÇÃO - Itens desabilitados */
+.selection-grid.view-mode .selection-item {
+    cursor: default;
+    pointer-events: none;
+}
+
+.selection-grid.view-mode .selection-item.disabled {
+    background: transparent;
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+    opacity: 0.4;
+}
+
+.selection-grid.view-mode .selection-item.selected {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    opacity: 1;
 }
 
 /* MODAL DE VISUALIZAÇÃO */
@@ -641,6 +662,7 @@ tbody tr:hover { background: var(--table-hover); }
     button { padding: 10px 16px; font-size: 0.9rem; }
     .form-grid { grid-template-columns: 1fr; }
     .modal-content { padding: 1.5rem; }
+    .modal-content.extra-large { max-width: 95%; }
     .modal-actions { flex-direction: column-reverse; }
     .modal-actions button { width: 100%; }
     .selection-grid { grid-template-columns: 1fr; }
