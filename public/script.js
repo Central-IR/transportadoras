@@ -82,12 +82,12 @@ function showViewModal(id) {
         : '<p class="empty">NENHUM CELULAR CADASTRADO</p>';
 
     const regioes = transportadora.regioes && transportadora.regioes.length > 0
-        ? transportadora.regioes.map(r => toUpperCase(r)).join(', ')
-        : '<span class="empty">NENHUMA REGIÃO SELECIONADA</span>';
+        ? transportadora.regioes.map(r => `<p>${toUpperCase(r)}</p>`).join('')
+        : '<p class="empty">NENHUMA REGIÃO SELECIONADA</p>';
 
     const estados = transportadora.estados && transportadora.estados.length > 0
-        ? transportadora.estados.map(e => toUpperCase(e)).join(', ')
-        : '<span class="empty">NENHUM ESTADO SELECIONADO</span>';
+        ? transportadora.estados.map(e => `<p>${toUpperCase(e)}</p>`).join('')
+        : '<p class="empty">NENHUM ESTADO SELECIONADO</p>';
 
     const email = transportadora.email ? transportadora.email.toLowerCase() : '<span class="empty">NÃO INFORMADO</span>';
 
@@ -97,35 +97,53 @@ function showViewModal(id) {
                 <div class="modal-header">
                     <h3 class="modal-title">DETALHES DA TRANSPORTADORA</h3>
                 </div>
-                <div class="modal-form-content">
-                    <div class="view-section">
-                        <h4>NOME</h4>
-                        <p>${toUpperCase(transportadora.nome)}</p>
+                
+                <div class="tabs-container">
+                    <div class="tabs-nav">
+                        <button class="tab-btn active" onclick="switchViewTab('view-tab-geral')">GERAL</button>
+                        <button class="tab-btn" onclick="switchViewTab('view-tab-contatos')">CONTATOS</button>
+                        <button class="tab-btn" onclick="switchViewTab('view-tab-regioes')">REGIÕES</button>
+                        <button class="tab-btn" onclick="switchViewTab('view-tab-estados')">ESTADOS</button>
                     </div>
-                    
-                    <div class="view-section">
-                        <h4>E-MAIL</h4>
-                        <p>${email}</p>
-                    </div>
-                    
-                    <div class="view-section">
-                        <h4>TELEFONES</h4>
-                        ${telefones}
-                    </div>
-                    
-                    <div class="view-section">
-                        <h4>CELULARES</h4>
-                        ${celulares}
-                    </div>
-                    
-                    <div class="view-section">
-                        <h4>REGIÕES DE ATENDIMENTO</h4>
-                        <p>${regioes}</p>
-                    </div>
-                    
-                    <div class="view-section">
-                        <h4>ESTADOS DE ATENDIMENTO</h4>
-                        <p>${estados}</p>
+
+                    <div class="modal-form-content">
+                        <div class="tab-content active" id="view-tab-geral">
+                            <div class="view-section">
+                                <h4>NOME</h4>
+                                <p>${toUpperCase(transportadora.nome)}</p>
+                            </div>
+                            
+                            <div class="view-section">
+                                <h4>E-MAIL</h4>
+                                <p style="text-transform: lowercase;">${email}</p>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="view-tab-contatos">
+                            <div class="view-section">
+                                <h4>TELEFONES</h4>
+                                ${telefones}
+                            </div>
+                            
+                            <div class="view-section">
+                                <h4>CELULARES</h4>
+                                ${celulares}
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="view-tab-regioes">
+                            <div class="view-section">
+                                <h4>REGIÕES DE ATENDIMENTO</h4>
+                                ${regioes}
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="view-tab-estados">
+                            <div class="view-section">
+                                <h4>ESTADOS DE ATENDIMENTO</h4>
+                                ${estados}
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="modal-actions">
@@ -322,10 +340,21 @@ function showFormModal(editingId = null) {
     setTimeout(() => document.getElementById('modalNome').focus(), 100);
 }
 
-// SISTEMA DE ABAS
+// SISTEMA DE ABAS - FORMULÁRIO
 window.switchTab = function(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.querySelectorAll('#formModal .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#formModal .tab-content').forEach(content => content.classList.remove('active'));
+    
+    const clickedBtn = event.target;
+    if (clickedBtn) clickedBtn.classList.add('active');
+    
+    document.getElementById(tabId).classList.add('active');
+};
+
+// SISTEMA DE ABAS - VISUALIZAÇÃO
+window.switchViewTab = function(tabId) {
+    document.querySelectorAll('#viewModal .tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#viewModal .tab-content').forEach(content => content.classList.remove('active'));
     
     const clickedBtn = event.target;
     if (clickedBtn) clickedBtn.classList.add('active');
