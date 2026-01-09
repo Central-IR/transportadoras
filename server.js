@@ -19,12 +19,16 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// MIDDLEWARES
+// MIDDLEWARES - ORDEM IMPORTA!
 app.use(cors({
     origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Session-Token']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Session-Token', 'Accept'],
+    credentials: true
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -66,6 +70,11 @@ setInterval(() => {
 const PORTAL_URL = process.env.PORTAL_URL || 'https://ir-comercio-portal-zcan.onrender.com';
 
 async function verificarAutenticacao(req, res, next) {
+    // Permitir requisições HEAD sem autenticação para verificação de status
+    if (req.method === 'HEAD') {
+        return next();
+    }
+
     const publicPaths = ['/', '/health', '/app'];
     if (publicPaths.includes(req.path)) {
         return next();
@@ -74,6 +83,7 @@ async function verificarAutenticacao(req, res, next) {
     const sessionToken = req.headers['x-session-token'] || req.query.sessionToken;
 
     if (!sessionToken) {
+        console.log('❌ Requisição sem token:', req.method, req.path);
         return res.status(401).json({
             error: 'Não autenticado',
             redirectToLogin: true
@@ -88,6 +98,7 @@ async function verificarAutenticacao(req, res, next) {
         });
 
         if (!verifyResponse.ok) {
+            console.log('❌ Token inválido:', sessionToken.substring(0, 10) + '...');
             return res.status(401).json({
                 error: 'Sessão inválida',
                 redirectToLogin: true
@@ -97,6 +108,7 @@ async function verificarAutenticacao(req, res, next) {
         const sessionData = await verifyResponse.json();
 
         if (!sessionData.valid) {
+            console.log('❌ Sessão não válida');
             return res.status(401).json({
                 error: 'Sessão inválida',
                 redirectToLogin: true
@@ -107,6 +119,7 @@ async function verificarAutenticacao(req, res, next) {
         req.sessionToken = sessionToken;
         next();
     } catch (error) {
+        console.error('❌ Erro ao verificar autenticação:', error.message);
         return res.status(500).json({
             error: 'Erro ao verificar autenticação'
         });
@@ -130,46 +143,64 @@ app.use(express.static(publicPath, {
     }
 }));
 
-// HEALTH CHECK
+// HEALTH CHECK - SEM AUTENTICAÇÃO
 app.get('/health', async (req, res) => {
     try {
-        const { error } = await supabase
+        const { count, error } = await supabase
             .from('transportadoras')
-            .select('count', { count: 'exact', head: true });
+            .select('*', { count: 'exact', head: true });
         
         res.json({
             status: error ? 'unhealthy' : 'healthy',
             database: error ? 'disconnected' : 'connected',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            service: 'transportadoras'
         });
     } catch (error) {
+        console.error('❌ Health check failed:', error.message);
         res.json({
             status: 'unhealthy',
-            timestamp: new Date().toISOString()
+            database: 'error',
+            timestamp: new Date().toISOString(),
+            service: 'transportadoras'
         });
     }
 });
 
-// ROTAS DA API
+// APLICAR AUTENTICAÇÃO APENAS NAS ROTAS DA API
 app.use('/api', verificarAutenticacao);
 
+// HEAD request para verificar conexão - ANTES da autenticação nas rotas específicas
 app.head('/api/transportadoras', (req, res) => {
     res.status(200).end();
 });
 
-// Listar transportadoras
+// ============================================
+// ROTAS DA API - TRANSPORTADORAS
+// ============================================
+
+// Listar todas as transportadoras
 app.get('/api/transportadoras', async (req, res) => {
     try {
+        console.log('📋 Buscando transportadoras...');
+        
         const { data, error } = await supabase
             .from('transportadoras')
             .select('*')
             .order('nome', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Erro ao buscar transportadoras:', error);
+            throw error;
+        }
+        
+        console.log(`✅ ${data?.length || 0} transportadoras encontradas`);
         res.json(data || []);
     } catch (error) {
+        console.error('❌ Erro na rota GET /transportadoras:', error);
         res.status(500).json({ 
-            error: 'Erro ao buscar transportadoras'
+            error: 'Erro ao buscar transportadoras',
+            message: error.message
         });
     }
 });
@@ -177,6 +208,8 @@ app.get('/api/transportadoras', async (req, res) => {
 // Buscar transportadora específica
 app.get('/api/transportadoras/:id', async (req, res) => {
     try {
+        console.log('🔍 Buscando transportadora:', req.params.id);
+        
         const { data, error } = await supabase
             .from('transportadoras')
             .select('*')
@@ -184,45 +217,60 @@ app.get('/api/transportadoras/:id', async (req, res) => {
             .single();
 
         if (error) {
+            console.log('❌ Transportadora não encontrada:', req.params.id);
             return res.status(404).json({ error: 'Transportadora não encontrada' });
         }
         
+        console.log('✅ Transportadora encontrada:', data.nome);
         res.json(data);
     } catch (error) {
+        console.error('❌ Erro na rota GET /transportadoras/:id:', error);
         res.status(500).json({ 
-            error: 'Erro ao buscar transportadora'
+            error: 'Erro ao buscar transportadora',
+            message: error.message
         });
     }
 });
 
-// Criar transportadora
+// Criar nova transportadora
 app.post('/api/transportadoras', async (req, res) => {
     try {
         const { nome, telefones, celulares, email, regioes, estados } = req.body;
 
-        if (!nome || !email) {
-            return res.status(400).json({ error: 'Nome e e-mail são obrigatórios' });
+        console.log('➕ Criando transportadora:', nome);
+
+        if (!nome) {
+            return res.status(400).json({ error: 'Nome é obrigatório' });
         }
+
+        const transportadoraData = {
+            nome: nome.trim(),
+            telefones: telefones || [],
+            celulares: celulares || [],
+            email: email ? email.trim().toLowerCase() : null,
+            regioes: regioes || [],
+            estados: estados || [],
+            timestamp: new Date().toISOString()
+        };
 
         const { data, error } = await supabase
             .from('transportadoras')
-            .insert([{
-                nome: nome.trim(),
-                telefones: telefones || [],
-                celulares: celulares || [],
-                email: email.trim().toLowerCase(),
-                regioes: regioes || [],
-                estados: estados || [],
-                timestamp: new Date().toISOString()
-            }])
+            .insert([transportadoraData])
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Erro ao criar transportadora:', error);
+            throw error;
+        }
+        
+        console.log('✅ Transportadora criada:', data.id);
         res.status(201).json(data);
     } catch (error) {
+        console.error('❌ Erro na rota POST /transportadoras:', error);
         res.status(500).json({ 
-            error: 'Erro ao criar transportadora'
+            error: 'Erro ao criar transportadora',
+            message: error.message
         });
     }
 });
@@ -232,33 +280,41 @@ app.put('/api/transportadoras/:id', async (req, res) => {
     try {
         const { nome, telefones, celulares, email, regioes, estados } = req.body;
 
-        if (!nome || !email) {
-            return res.status(400).json({ error: 'Nome e e-mail são obrigatórios' });
+        console.log('✏️ Atualizando transportadora:', req.params.id);
+
+        if (!nome) {
+            return res.status(400).json({ error: 'Nome é obrigatório' });
         }
+
+        const transportadoraData = {
+            nome: nome.trim(),
+            telefones: telefones || [],
+            celulares: celulares || [],
+            email: email ? email.trim().toLowerCase() : null,
+            regioes: regioes || [],
+            estados: estados || [],
+            timestamp: new Date().toISOString()
+        };
 
         const { data, error } = await supabase
             .from('transportadoras')
-            .update({
-                nome: nome.trim(),
-                telefones: telefones || [],
-                celulares: celulares || [],
-                email: email.trim().toLowerCase(),
-                regioes: regioes || [],
-                estados: estados || [],
-                timestamp: new Date().toISOString()
-            })
+            .update(transportadoraData)
             .eq('id', req.params.id)
             .select()
             .single();
 
         if (error) {
+            console.error('❌ Erro ao atualizar transportadora:', error);
             return res.status(404).json({ error: 'Transportadora não encontrada' });
         }
         
+        console.log('✅ Transportadora atualizada:', data.nome);
         res.json(data);
     } catch (error) {
+        console.error('❌ Erro na rota PUT /transportadoras/:id:', error);
         res.status(500).json({ 
-            error: 'Erro ao atualizar transportadora'
+            error: 'Erro ao atualizar transportadora',
+            message: error.message
         });
     }
 });
@@ -266,21 +322,33 @@ app.put('/api/transportadoras/:id', async (req, res) => {
 // Deletar transportadora
 app.delete('/api/transportadoras/:id', async (req, res) => {
     try {
+        console.log('🗑️ Deletando transportadora:', req.params.id);
+        
         const { error } = await supabase
             .from('transportadoras')
             .delete()
             .eq('id', req.params.id);
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Erro ao deletar transportadora:', error);
+            throw error;
+        }
+        
+        console.log('✅ Transportadora deletada');
         res.status(204).end();
     } catch (error) {
+        console.error('❌ Erro na rota DELETE /transportadoras/:id:', error);
         res.status(500).json({ 
-            error: 'Erro ao excluir transportadora'
+            error: 'Erro ao excluir transportadora',
+            message: error.message
         });
     }
 });
 
-// ROTA PRINCIPAL
+// ============================================
+// ROTAS PRINCIPAIS
+// ============================================
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(publicPath, 'index.html'));
 });
@@ -291,27 +359,56 @@ app.get('/app', (req, res) => {
 
 // 404
 app.use((req, res) => {
+    console.log('❌ 404 - Rota não encontrada:', req.method, req.path);
     res.status(404).json({
-        error: '404 - Rota não encontrada'
+        error: '404 - Rota não encontrada',
+        path: req.path
     });
 });
 
 // TRATAMENTO DE ERROS
 app.use((error, req, res, next) => {
+    console.error('❌ Erro interno:', error);
     res.status(500).json({
-        error: 'Erro interno do servidor'
+        error: 'Erro interno do servidor',
+        message: error.message
     });
 });
 
+// ============================================
 // INICIAR SERVIDOR
+// ============================================
+
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Servidor rodando na porta ${PORT}`);
-    console.log(`✅ Database: Conectado`);
-    console.log(`✅ Autenticação: Ativa`);
-    console.log(`📝 Logs salvos em: acessos.log\n`);
+    console.log('\n🚀 ========================================');
+    console.log('✅ Servidor Transportadoras ONLINE');
+    console.log(`✅ Porta: ${PORT}`);
+    console.log(`✅ Database: Conectado ao Supabase`);
+    console.log(`✅ Autenticação: Ativa (Portal)`);
+    console.log(`📝 Logs: acessos.log`);
+    console.log('🚀 ========================================\n');
 });
 
 // Verificar pasta public
 if (!fs.existsSync(publicPath)) {
-    console.error('⚠️  Pasta public/ não encontrada!');
+    console.error('⚠️  AVISO: Pasta public/ não encontrada!');
+    console.error('📁 Criando pasta public/...');
+    fs.mkdirSync(publicPath, { recursive: true });
 }
+
+// Teste de conexão com Supabase ao iniciar
+(async () => {
+    try {
+        const { count, error } = await supabase
+            .from('transportadoras')
+            .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+            console.error('❌ Erro ao conectar com Supabase:', error.message);
+        } else {
+            console.log('✅ Conexão com Supabase verificada');
+        }
+    } catch (error) {
+        console.error('❌ Erro ao testar conexão:', error.message);
+    }
+})();
