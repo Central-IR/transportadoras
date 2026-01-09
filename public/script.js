@@ -1,6 +1,6 @@
 // CONFIGURAÇÃO
 const PORTAL_URL = 'https://ir-comercio-portal-zcan.onrender.com';
-const API_URL = 'https://ordem-compra.onrender.com/api';
+const API_URL = 'https://transportadoras.onrender.com/api';
 
 let transportadoras = [];
 let isOnline = false;
