@@ -623,9 +623,6 @@ async function handleSubmit(event) {
             transportadoras.push(savedData);
             showToast('Transportadora criada com sucesso!', 'success');
         }
-
-        lastDataHash = JSON.stringify(transportadoras.map(t => t.id));
-        atualizarTransportadorasDisponiveis();
         renderTransportadorasFilter();
         filterTransportadoras();
         closeFormModal();
