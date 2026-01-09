@@ -14,6 +14,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
     console.error('❌ ERRO: Variáveis de ambiente do Supabase não configuradas');
+    console.error('Configure SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no arquivo .env');
     process.exit(1);
 }
 
@@ -94,7 +95,8 @@ async function verificarAutenticacao(req, res, next) {
         const verifyResponse = await fetch(`${PORTAL_URL}/api/verify-session`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionToken })
+            body: JSON.stringify({ sessionToken }),
+            signal: AbortSignal.timeout(5000) // Timeout de 5 segundos
         });
 
         if (!verifyResponse.ok) {
@@ -120,6 +122,14 @@ async function verificarAutenticacao(req, res, next) {
         next();
     } catch (error) {
         console.error('❌ Erro ao verificar autenticação:', error.message);
+        
+        // Se for erro de timeout ou conexão, permitir acesso (modo offline)
+        if (error.name === 'AbortError' || error.code === 'ECONNREFUSED') {
+            console.log('⚠️ Portal offline - permitindo acesso');
+            req.user = { offline: true };
+            return next();
+        }
+        
         return res.status(500).json({
             error: 'Erro ao verificar autenticação'
         });
@@ -129,16 +139,22 @@ async function verificarAutenticacao(req, res, next) {
 // ARQUIVOS ESTÁTICOS
 const publicPath = path.join(__dirname, 'public');
 
+// Criar pasta public se não existir
+if (!fs.existsSync(publicPath)) {
+    console.log('📁 Criando pasta public/...');
+    fs.mkdirSync(publicPath, { recursive: true });
+}
+
 app.use(express.static(publicPath, {
     index: 'index.html',
     dotfiles: 'deny',
     setHeaders: (res, path) => {
         if (path.endsWith('.html')) {
-            res.setHeader('Content-Type', 'text/html');
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
         } else if (path.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
+            res.setHeader('Content-Type', 'text/css; charset=utf-8');
         } else if (path.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
         }
     }
 }));
@@ -154,26 +170,28 @@ app.get('/health', async (req, res) => {
             status: error ? 'unhealthy' : 'healthy',
             database: error ? 'disconnected' : 'connected',
             timestamp: new Date().toISOString(),
-            service: 'transportadoras'
+            service: 'transportadoras',
+            transportadoras: count || 0
         });
     } catch (error) {
         console.error('❌ Health check failed:', error.message);
-        res.json({
+        res.status(500).json({
             status: 'unhealthy',
             database: 'error',
             timestamp: new Date().toISOString(),
-            service: 'transportadoras'
+            service: 'transportadoras',
+            error: error.message
         });
     }
 });
 
-// APLICAR AUTENTICAÇÃO APENAS NAS ROTAS DA API
-app.use('/api', verificarAutenticacao);
-
-// HEAD request para verificar conexão - ANTES da autenticação nas rotas específicas
+// HEAD request para verificar conexão - ANTES da autenticação
 app.head('/api/transportadoras', (req, res) => {
     res.status(200).end();
 });
+
+// APLICAR AUTENTICAÇÃO APENAS NAS ROTAS DA API (exceto HEAD)
+app.use('/api', verificarAutenticacao);
 
 // ============================================
 // ROTAS DA API - TRANSPORTADORAS
@@ -244,10 +262,10 @@ app.post('/api/transportadoras', async (req, res) => {
         }
 
         const transportadoraData = {
-            nome: nome.trim(),
+            nome: nome.trim().toUpperCase(),
             telefones: telefones || [],
             celulares: celulares || [],
-            email: email ? email.trim().toLowerCase() : null,
+            email: email ? email.trim().toLowerCase() : '',
             regioes: regioes || [],
             estados: estados || [],
             timestamp: new Date().toISOString()
@@ -287,10 +305,10 @@ app.put('/api/transportadoras/:id', async (req, res) => {
         }
 
         const transportadoraData = {
-            nome: nome.trim(),
+            nome: nome.trim().toUpperCase(),
             telefones: telefones || [],
             celulares: celulares || [],
-            email: email ? email.trim().toLowerCase() : null,
+            email: email ? email.trim().toLowerCase() : '',
             regioes: regioes || [],
             estados: estados || [],
             timestamp: new Date().toISOString()
@@ -379,7 +397,7 @@ app.use((error, req, res, next) => {
 // INICIAR SERVIDOR
 // ============================================
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log('\n🚀 ========================================');
     console.log('✅ Servidor Transportadoras ONLINE');
     console.log(`✅ Porta: ${PORT}`);
@@ -389,12 +407,14 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log('🚀 ========================================\n');
 });
 
-// Verificar pasta public
-if (!fs.existsSync(publicPath)) {
-    console.error('⚠️  AVISO: Pasta public/ não encontrada!');
-    console.error('📁 Criando pasta public/...');
-    fs.mkdirSync(publicPath, { recursive: true });
-}
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('⚠️ SIGTERM recebido, encerrando servidor...');
+    server.close(() => {
+        console.log('✅ Servidor encerrado');
+        process.exit(0);
+    });
+});
 
 // Teste de conexão com Supabase ao iniciar
 (async () => {
@@ -406,7 +426,7 @@ if (!fs.existsSync(publicPath)) {
         if (error) {
             console.error('❌ Erro ao conectar com Supabase:', error.message);
         } else {
-            console.log('✅ Conexão com Supabase verificada');
+            console.log(`✅ Conexão com Supabase verificada (${count || 0} transportadoras)`);
         }
     } catch (error) {
         console.error('❌ Erro ao testar conexão:', error.message);
