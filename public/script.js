@@ -623,7 +623,6 @@ async function handleSubmit(event) {
             transportadoras.push(savedData);
             showToast('Transportadora criada com sucesso!', 'success');
         }
-        renderTransportadorasFilter();
         filterTransportadoras();
         closeFormModal();
     } catch (error) {
