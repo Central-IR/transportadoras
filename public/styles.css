@@ -97,7 +97,7 @@ body {
 
 .app-content {
     opacity: 0;
-    animation: contentFadeIn 0.2s ease 0.15s forwards;
+    animation: contentFadeIn 1.0s ease 1.0s forwards;
 }
 
 @keyframes contentFadeIn {
