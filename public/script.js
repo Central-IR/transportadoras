@@ -728,6 +728,9 @@ function editTransportadora(id) {
 }
 
 async function deleteTransportadora(id) {
+    if// CONTINUAÇÃO DO SCRIPT.JS
+
+async function deleteTransportadora(id) {
     if (!confirm('Tem certeza que deseja excluir esta transportadora?')) return;
 
     if (!isOnline) {
