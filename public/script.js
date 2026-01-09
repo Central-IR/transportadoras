@@ -890,7 +890,7 @@ function showToast(message, type = 'success') {
     document.body.appendChild(messageDiv);
     
     setTimeout(() => {
-        messageDiv.style.animation = 'slideOut 0.3s ease forwards';
+        messageDiv.style.animation = 'slideOut 0.1s ease forwards';
         setTimeout(() => messageDiv.remove(), 300);
     }, 3000);
 }
