@@ -515,8 +515,8 @@ button.small {
 }
 
 .selection-item.selected {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: #6B7280;  /* Cinza médio */
+    border-color: #4B5563;  /* Cinza escuro */
     color: white;
 }
 
@@ -527,9 +527,9 @@ button.small {
 
 .selection-item-view {
     padding: 12px 16px;
-    background: var(--primary);
+    background: #6B7280;  /* Cinza médio */
     border-radius: 8px;
-    border: 2px solid var(--primary);
+    border: 2px solid #4B5563;  /* Cinza escuro */
     text-align: center;
     font-weight: 500;
     font-size: 0.9rem;
