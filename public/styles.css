@@ -83,7 +83,7 @@ body {
     color: var(--text-primary);
     letter-spacing: -0.5px;
     opacity: 0;
-    animation: fadeOut 0.2s ease 0.1s forwards;
+    animation: fadeOut 1.0s ease 0.1s forwards;
 }
 
 @keyframes smoothFadeIn {
