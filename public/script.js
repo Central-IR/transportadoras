@@ -26,7 +26,7 @@ function toUpperCase(value) {
 function setupUpperCaseInputs() {
     const textInputs = document.querySelectorAll('input[type="text"]:not([readonly]):not([type="email"]), textarea');
     textInputs.forEach(input => {
-        if (input.type !== 'email') {
+        if (input.type !== 'email' && input.id !== 'modalEmail') {
             input.addEventListener('input', function(e) {
                 const start = this.selectionStart;
                 const end = this.selectionEnd;
@@ -98,11 +98,17 @@ async function checkServerStatus() {
             headers['X-Session-Token'] = sessionToken;
         }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+
         const response = await fetch(`${API_URL}/transportadoras`, {
             method: 'GET',
             headers: headers,
-            mode: 'cors'
+            mode: 'cors',
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (response.status === 401) {
             sessionStorage.removeItem('transportadoraSession');
@@ -121,7 +127,7 @@ async function checkServerStatus() {
         updateConnectionStatus();
         return isOnline;
     } catch (error) {
-        console.error('❌ Erro ao verificar servidor:', error);
+        console.error('❌ Erro ao verificar servidor:', error.message);
         isOnline = false;
         updateConnectionStatus();
         return false;
@@ -154,11 +160,17 @@ async function loadTransportadoras() {
             headers['X-Session-Token'] = sessionToken;
         }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
         const response = await fetch(`${API_URL}/transportadoras`, {
             method: 'GET',
             headers: headers,
-            mode: 'cors'
+            mode: 'cors',
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (response.status === 401) {
             sessionStorage.removeItem('transportadoraSession');
@@ -182,7 +194,11 @@ async function loadTransportadoras() {
             filterTransportadoras();
         }
     } catch (error) {
-        console.error('❌ Erro ao carregar:', error);
+        if (error.name === 'AbortError') {
+            console.error('❌ Timeout ao carregar transportadoras');
+        } else {
+            console.error('❌ Erro ao carregar:', error);
+        }
     }
 }
 
@@ -539,7 +555,7 @@ async function handleSubmit(event) {
 
     const formData = {
         nome: toUpperCase(document.getElementById('modalNome').value.trim()),
-        email: emailValue ? emailValue.toLowerCase() : null,
+        email: emailValue || '',  // Sempre enviar string, nunca null
         telefones,
         celulares,
         regioes,
@@ -567,12 +583,18 @@ async function handleSubmit(event) {
             headers['X-Session-Token'] = sessionToken;
         }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos para salvar
+
         const response = await fetch(url, {
             method,
             headers: headers,
             body: JSON.stringify(formData),
-            mode: 'cors'
+            mode: 'cors',
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (response.status === 401) {
             sessionStorage.removeItem('transportadoraSession');
@@ -609,7 +631,11 @@ async function handleSubmit(event) {
         closeFormModal();
     } catch (error) {
         console.error('Erro completo:', error);
-        showToast(`Erro: ${error.message}`, 'error');
+        if (error.name === 'AbortError') {
+            showToast('Timeout: Operação demorou muito', 'error');
+        } else {
+            showToast(`Erro: ${error.message}`, 'error');
+        }
     }
 }
 
@@ -728,9 +754,6 @@ function editTransportadora(id) {
 }
 
 async function deleteTransportadora(id) {
-    if// CONTINUAÇÃO DO SCRIPT.JS
-
-async function deleteTransportadora(id) {
     if (!confirm('Tem certeza que deseja excluir esta transportadora?')) return;
 
     if (!isOnline) {
@@ -747,11 +770,17 @@ async function deleteTransportadora(id) {
             headers['X-Session-Token'] = sessionToken;
         }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
         const response = await fetch(`${API_URL}/transportadoras/${id}`, {
             method: 'DELETE',
             headers: headers,
-            mode: 'cors'
+            mode: 'cors',
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (response.status === 401) {
             sessionStorage.removeItem('transportadoraSession');
@@ -769,7 +798,11 @@ async function deleteTransportadora(id) {
         showToast('Transportadora excluída com sucesso!', 'success');
     } catch (error) {
         console.error('Erro ao deletar:', error);
-        showToast('Erro ao excluir transportadora', 'error');
+        if (error.name === 'AbortError') {
+            showToast('Timeout: Operação demorou muito', 'error');
+        } else {
+            showToast('Erro ao excluir transportadora', 'error');
+        }
     }
 }
 
