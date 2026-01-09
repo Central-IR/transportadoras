@@ -4,24 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transportadoras</title>
+    <link rel="icon" type="image/png" href="I.R.-COMERCIO-E-MATERIAIS-ELETRICOS-PRETO.png">
     <link rel="stylesheet" href="styles.css">
-    <!-- SEM IMPORTS EXTERNOS - TUDO LOCAL -->
 </head>
 <body>
-    <!-- Splash Screen -->
-    <div class="splash-screen">
+    <div class="splash-screen" id="splashScreen">
         <h1 class="splash-title">Transportadoras</h1>
     </div>
 
-    <!-- Conteúdo Principal -->
     <div class="app-content">
         <div class="container">
-            <!-- Header com título e status -->
             <div class="header">
-                <h1>Transportadoras</h1>
-                <div class="connection-status" id="connectionStatus">
-                    <div class="status-dot"></div>
+                <div class="header-left">
+                    <h1>Transportadoras</h1>
+                    <div id="connectionStatus" class="connection-status offline">
+                        <span class="status-dot"></span>
+                    </div>
                 </div>
+                <button onclick="openFormModal()" class="btn-new-order-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Nova Transportadora
+                </button>
             </div>
 
             <!-- Filtro por Transportadora -->
@@ -30,32 +36,44 @@
                 <div id="transportadorasFilter"></div>
             </div>
 
-            <!-- Campo de Busca -->
-            <div class="card">
-                <input 
-                    type="text" 
-                    id="search" 
-                    placeholder="Buscar por nome, e-mail, região ou estado..." 
-                    oninput="filterTransportadoras()"
-                    style="margin-bottom: 0;"
-                >
+            <!-- Search Bar with Filters -->
+            <div class="search-bar-wrapper">
+                <div class="search-bar">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="search" placeholder="Buscar por nome, e-mail, região ou estado..." oninput="filterTransportadoras()">
+                </div>
             </div>
 
-            <!-- Listagem de Transportadoras -->
-            <div class="card">
-                <div id="transportadorasContainer"></div>
+            <!-- Table Card -->
+            <div class="card table-card">
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>Celular</th>
+                                <th>E-mail</th>
+                                <th>Alteração</th>
+                                <th style="text-align: center;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transportadorasContainer"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
-
-        <!-- Botão Flutuante para Adicionar -->
-        <button class="floating-add-btn" onclick="toggleForm()" title="Adicionar Transportadora">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-        </button>
     </div>
 
-    <!-- APENAS O SCRIPT LOCAL - SEM CDN, SEM BIBLIOTECAS EXTERNAS -->
+    <script>
+        setTimeout(() => {
+            const splash = document.getElementById('splashScreen');
+            if (splash) splash.style.display = 'none';
+        }, 3000);
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
