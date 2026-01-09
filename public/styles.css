@@ -74,7 +74,7 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 99999;
-    animation: fadeOut 0.5s ease 2.5s forwards;
+    animation: fadeOut 1.0s ease 2.5s forwards;
 }
 
 .splash-title {
