@@ -83,7 +83,7 @@ body {
     color: var(--text-primary);
     letter-spacing: -0.5px;
     opacity: 0;
-    animation: fadeOut 1.0s ease 1.0s forwards;
+    animation: fadeOut 0.5s ease 1.5s forwards;
 }
 
 @keyframes smoothFadeIn {
@@ -97,7 +97,7 @@ body {
 
 .app-content {
     opacity: 0;
-    animation: contentFadeIn 1.0s ease 1.2s forwards;
+    animation: contentFadeIn 0.5s ease 1.5s forwards;
 }
 
 @keyframes contentFadeIn {
