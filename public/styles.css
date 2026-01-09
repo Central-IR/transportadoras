@@ -256,9 +256,9 @@ h3 {
 }
 
 .brand-button.active {
-    background: var(--primary);
+    background: #6B7280;  /* Cinza médio */
     color: white;
-    border-color: var(--primary);
+    border-color: #4B5563;  /* Cinza escuro */
 }
 
 /* ============================================
