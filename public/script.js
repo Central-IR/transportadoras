@@ -623,6 +623,10 @@ async function handleSubmit(event) {
             transportadoras.push(savedData);
             showToast('Transportadora criada com sucesso!', 'success');
         }
+
+        lastDataHash = JSON.stringify(transportadoras.map(t => t.id));
+        atualizarTransportadorasDisponiveis();
+        renderTransportadorasFilter();
         filterTransportadoras();
         closeFormModal();
     } catch (error) {
@@ -884,4 +888,9 @@ function showToast(message, type = 'success') {
     messageDiv.textContent = message;
     
     document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => messageDiv.remove(), 300);
+    }, 3000);
 }
