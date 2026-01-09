@@ -892,5 +892,5 @@ function showToast(message, type = 'success') {
    setTimeout(() => {
     messageDiv.style.animation = 'slideOut 0.1s ease forwards';
     setTimeout(() => messageDiv.remove(), 100);
-}, 1000);
+}, 100);
 }
