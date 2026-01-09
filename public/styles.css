@@ -1,7 +1,7 @@
 /* VARIÁVEIS BASE */
 :root {
     --primary: #CC7000;
-    --bg-primary: #FFFFFF;   /* ✅ branco */
+    --bg-primary: #FFFFFF;
     --bg-secondary: #F8F9FA;
     --bg-card: #FFFFFF;
     --text-primary: #1A1A1A;
@@ -28,7 +28,7 @@
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg-primary: #000000; /* ✅ escuro */
+        --bg-primary: #000000;
         --bg-secondary: #000000c7;
         --bg-card: #1A1A1A;
         --text-primary: #FFFFFF;
@@ -61,10 +61,9 @@ body {
 
 /* LOADER */
 .loader {
-    margin-top: 24px;
-    width: 32px;
-    height: 32px;
-    border: 3px solid rgba(204, 112, 0, 0.2);
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(204, 112, 0, 0.2);
     border-top-color: #CC7000;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
@@ -75,7 +74,6 @@ body {
         transform: rotate(360deg);
     }
 }
-
 
 /* ============================================
    SPLASH SCREEN
@@ -88,34 +86,22 @@ body {
     height: 100%;
     background: var(--bg-primary);
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 99999;
-    animation: fadeOut 1.0s ease 2.5s forwards;
+    animation: splashFadeOut 0.5s ease 2.5s forwards;
 }
 
-.splash-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.5px;
-    opacity: 0;
-    animation: fadeOut 0.5s ease 1.0s forwards;
-}
-
-@keyframes smoothFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fadeOut {
-    to { opacity: 0; visibility: hidden; }
+@keyframes splashFadeOut {
+    to { 
+        opacity: 0; 
+        visibility: hidden; 
+    }
 }
 
 .app-content {
     opacity: 0;
-    animation: contentFadeIn 0.5s ease 1.0s forwards;
+    animation: contentFadeIn 0.5s ease 2.5s forwards;
 }
 
 @keyframes contentFadeIn {
@@ -274,9 +260,9 @@ h3 {
 }
 
 .brand-button.active {
-    background: #6B7280;  /* Cinza médio */
+    background: #6B7280;
     color: white;
-    border-color: #4B5563;  /* Cinza escuro */
+    border-color: #4B5563;
 }
 
 /* ============================================
@@ -533,8 +519,8 @@ button.small {
 }
 
 .selection-item.selected {
-    background: #6B7280;  /* Cinza médio */
-    border-color: #4B5563;  /* Cinza escuro */
+    background: #6B7280;
+    border-color: #4B5563;
     color: white;
 }
 
@@ -545,9 +531,9 @@ button.small {
 
 .selection-item-view {
     padding: 12px 16px;
-    background: #6B7280;  /* Cinza médio */
+    background: #6B7280;
     border-radius: 8px;
-    border: 2px solid #4B5563;  /* Cinza escuro */
+    border: 2px solid #4B5563;
     text-align: center;
     font-weight: 500;
     font-size: 0.9rem;
@@ -618,16 +604,22 @@ button.small {
     justify-content: center;
     z-index: 10000;
     opacity: 0;
-    animation: fadeIn 0.2s ease forwards;
+    animation: modalFadeIn 0.2s ease forwards;
 }
 
 .modal-overlay.show {
     display: flex;
 }
 
-@keyframes fadeIn {
+@keyframes modalFadeIn {
     to {
         opacity: 1;
+    }
+}
+
+@keyframes modalFadeOut {
+    to {
+        opacity: 0;
     }
 }
 
@@ -816,10 +808,6 @@ button.small {
     
     h1 {
         font-size: 1.5rem;
-    }
-    
-    .splash-title {
-        font-size: 1.3rem;
     }
     
     .search-bar {
