@@ -11,8 +11,8 @@ let sessionToken = null;
 let currentTab = 0;
 let currentViewTab = 0;
 
-const tabs = ['tab-geral', 'tab-regioes', 'tab-estados'];
-const viewTabs = ['view-tab-geral', 'view-tab-contatos', 'view-tab-regioes', 'view-tab-estados'];
+const tabs = ['tab-geral', 'tab-contato', 'tab-regioes', 'tab-estados'];
+const viewTabs = ['view-tab-geral', 'view-tab-contato', 'view-tab-regioes', 'view-tab-estados'];
 
 console.log('🚀 Transportadoras iniciada');
 console.log('📍 API URL:', API_URL);
@@ -219,293 +219,143 @@ function renderTransportadorasFilter() {
 
     const transportadorasArray = Array.from(transportadorasDisponiveis).sort();
     
-    container.innerHTML = '';
-    
-    ['TODAS', ...transportadorasArray].forEach(transportadora => {
-        const button = document.createElement('button');
-        button.className = `brand-button ${transportadora === transportadoraSelecionada ? 'active' : ''}`;
-        button.textContent = transportadora;
-        button.onclick = () => selecionarTransportadora(transportadora);
-        container.appendChild(button);
-    });
+    const buttonsHTML = transportadorasArray.map(nome => 
+        `<button class="brand-button ${transportadoraSelecionada === nome ? 'active' : ''}" 
+                onclick="selecionarTransportadora('${nome.replace(/'/g, "\\'")}')">${nome}</button>`
+    ).join('');
+
+    const todasButton = `<button class="brand-button ${transportadoraSelecionada === 'TODAS' ? 'active' : ''}" 
+                                onclick="selecionarTransportadora('TODAS')">TODAS</button>`;
+
+    container.innerHTML = todasButton + buttonsHTML;
 }
 
-function selecionarTransportadora(transportadora) {
-    transportadoraSelecionada = transportadora;
+function selecionarTransportadora(nome) {
+    transportadoraSelecionada = nome;
     renderTransportadorasFilter();
     filterTransportadoras();
 }
 
-function switchTab(tabId) {
-    const tabIndex = tabs.indexOf(tabId);
-    if (tabIndex !== -1) {
-        currentTab = tabIndex;
-        showTab(currentTab);
-        updateNavigationButtons();
-    }
-}
-
-function showTab(index) {
-    const tabButtons = document.querySelectorAll('#formModal .tab-btn');
-    const tabContents = document.querySelectorAll('#formModal .tab-content');
-    
-    tabButtons.forEach(btn => btn.classList.remove('active'));
-    tabContents.forEach(content => content.classList.remove('active'));
-    
-    if (tabButtons[index]) tabButtons[index].classList.add('active');
-    if (tabContents[index]) tabContents[index].classList.add('active');
-}
-
-function updateNavigationButtons() {
-    const btnPrevious = document.getElementById('btnPrevious');
-    const btnNext = document.getElementById('btnNext');
-    const btnSave = document.getElementById('btnSave');
-    
-    if (!btnPrevious || !btnNext || !btnSave) return;
-    
-    if (currentTab > 0) {
-        btnPrevious.style.display = 'inline-flex';
-    } else {
-        btnPrevious.style.display = 'none';
-    }
-    
-    if (currentTab < tabs.length - 1) {
-        btnNext.style.display = 'inline-flex';
-        btnSave.style.display = 'none';
-    } else {
-        btnNext.style.display = 'none';
-        btnSave.style.display = 'inline-flex';
-    }
-}
-
-function nextTab() {
-    if (currentTab < tabs.length - 1) {
-        currentTab++;
-        showTab(currentTab);
-        updateNavigationButtons();
-    }
-}
-
-function previousTab() {
-    if (currentTab > 0) {
-        currentTab--;
-        showTab(currentTab);
-        updateNavigationButtons();
-    }
-}
-
-function switchViewTab(tabId) {
-    const viewTabsArray = ['view-tab-geral', 'view-tab-contatos', 'view-tab-regioes', 'view-tab-estados'];
-    const currentIndex = viewTabsArray.indexOf(tabId);
-    
-    if (currentIndex !== -1) {
-        currentViewTab = currentIndex;
-    }
-    
-    document.querySelectorAll('#viewModal .tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelectorAll('#viewModal .tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    
-    const clickedBtn = event?.target?.closest('.tab-btn');
-    if (clickedBtn) {
-        clickedBtn.classList.add('active');
-    } else {
-        document.querySelectorAll('#viewModal .tab-btn')[currentIndex]?.classList.add('active');
-    }
-    document.getElementById(tabId).classList.add('active');
-    
-    updateViewNavigationButtons();
-}
-
-function updateViewNavigationButtons() {
-    const btnViewPrevious = document.getElementById('btnViewPrevious');
-    const btnViewNext = document.getElementById('btnViewNext');
-    const btnViewClose = document.getElementById('btnViewClose');
-    
-    if (!btnViewPrevious || !btnViewNext || !btnViewClose) return;
-    
-    const totalTabs = 4;
-    
-    if (currentViewTab > 0) {
-        btnViewPrevious.style.display = 'inline-flex';
-    } else {
-        btnViewPrevious.style.display = 'none';
-    }
-    
-    if (currentViewTab < totalTabs - 1) {
-        btnViewNext.style.display = 'inline-flex';
-    } else {
-        btnViewNext.style.display = 'none';
-    }
-    
-    btnViewClose.style.display = 'inline-flex';
-}
-
-function nextViewTab() {
-    const viewTabsArray = ['view-tab-geral', 'view-tab-contatos', 'view-tab-regioes', 'view-tab-estados'];
-    if (currentViewTab < viewTabsArray.length - 1) {
-        currentViewTab++;
-        switchViewTab(viewTabsArray[currentViewTab]);
-    }
-}
-
-function previousViewTab() {
-    const viewTabsArray = ['view-tab-geral', 'view-tab-contatos', 'view-tab-regioes', 'view-tab-estados'];
-    if (currentViewTab > 0) {
-        currentViewTab--;
-        switchViewTab(viewTabsArray[currentViewTab]);
-    }
-}
-
-function toggleRegiao(regiao) {
-    const item = document.querySelector(`[data-regiao="${regiao}"]`);
-    if (item) {
-        item.classList.toggle('selected');
-    }
-}
-
-function toggleEstado(estado) {
-    const item = document.querySelector(`[data-estado="${estado}"]`);
-    if (item) {
-        item.classList.toggle('selected');
-    }
-}
-
-function addTelefone() {
-    const container = document.getElementById('telefonesContainer');
-    const newField = document.createElement('div');
-    newField.className = 'dynamic-field';
-    newField.innerHTML = `
-        <input type="tel" class="telefone-input" placeholder="(00) 0000-0000">
-        <button type="button" class="danger small" onclick="removeField(this)">Remover</button>
-    `;
-    container.appendChild(newField);
-    setupUpperCaseInputs();
-}
-
-function addCelular() {
-    const container = document.getElementById('celularesContainer');
-    const newField = document.createElement('div');
-    newField.className = 'dynamic-field';
-    newField.innerHTML = `
-        <input type="tel" class="celular-input" placeholder="(00) 00000-0000">
-        <button type="button" class="danger small" onclick="removeField(this)">Remover</button>
-    `;
-    container.appendChild(newField);
-    setupUpperCaseInputs();
-}
-
-function removeField(button) {
-    button.parentElement.remove();
-}
-
-function openFormModal(editingId = null) {
-    const isEditing = editingId !== null;
-    const transportadora = isEditing ? transportadoras.find(t => String(t.id) === String(editingId)) : null;
-    
+function openFormModal(transportadoraId = null) {
     currentTab = 0;
+    let transportadora = null;
+    
+    if (transportadoraId) {
+        transportadora = transportadoras.find(t => String(t.id) === String(transportadoraId));
+        if (!transportadora) {
+            showToast('Transportadora não encontrada', 'error');
+            return;
+        }
+    }
 
-    const telefones = transportadora?.telefones || [''];
-    const celulares = transportadora?.celulares || [''];
-    const regioesSelecionadas = transportadora?.regioes?.map(r => toUpperCase(r)) || [];
-    const estadosSelecionados = transportadora?.estados?.map(e => toUpperCase(e)) || [];
+    const isEdit = !!transportadoraId;
+    const titulo = isEdit ? 'Editar Transportadora' : 'Nova Transportadora';
 
     const modalHTML = `
         <div class="modal-overlay" id="formModal" style="display: flex;">
             <div class="modal-content extra-large">
                 <div class="modal-header">
-                    <h3 class="modal-title">${isEditing ? 'Editar Transportadora' : 'Nova Transportadora'}</h3>
+                    <h3 class="modal-title">${titulo}</h3>
+                    <button class="close-modal" onclick="closeFormModal()">&times;</button>
                 </div>
                 
-                <div class="tabs-container">
-                    <div class="tabs-nav">
-                        <button class="tab-btn active" onclick="switchTab('tab-geral')">Geral</button>
-                        <button class="tab-btn" onclick="switchTab('tab-regioes')">Regiões</button>
-                        <button class="tab-btn" onclick="switchTab('tab-estados')">Estados</button>
-                    </div>
+                <form id="transportadoraForm" onsubmit="submitForm(event, ${isEdit ? `'${transportadoraId}'` : 'null'})">
+                    <div class="tabs-container">
+                        <div class="tabs-nav">
+                            <button type="button" class="tab-btn active" onclick="switchTab('tab-geral')">Geral</button>
+                            <button type="button" class="tab-btn" onclick="switchTab('tab-contato')">Contato</button>
+                            <button type="button" class="tab-btn" onclick="switchTab('tab-regioes')">Regiões</button>
+                            <button type="button" class="tab-btn" onclick="switchTab('tab-estados')">Estados</button>
+                        </div>
 
-                    <form id="modalForm" onsubmit="handleSubmit(event)">
-                        <input type="hidden" id="editId" value="${editingId || ''}">
-                        
+                        <!-- ABA GERAL -->
                         <div class="tab-content active" id="tab-geral">
-                            <div class="form-group">
-                                <label for="modalNome">Nome da Transportadora *</label>
-                                <input type="text" id="modalNome" value="${toUpperCase(transportadora?.nome || '')}" required>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="modalNome">Nome da Transportadora *</label>
+                                    <input type="text" id="modalNome" required value="${transportadora ? toUpperCase(transportadora.nome) : ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="modalRepresentante">Nome do(a) Representante</label>
+                                    <input type="text" id="modalRepresentante" value="${transportadora && transportadora.representante ? toUpperCase(transportadora.representante) : ''}">
+                                </div>
                             </div>
-                            
+                        </div>
+
+                        <!-- ABA CONTATO -->
+                        <div class="tab-content" id="tab-contato">
                             <div class="form-group">
                                 <label for="modalEmail">E-mail</label>
-                                <input type="email" id="modalEmail" value="${transportadora?.email || ''}" style="text-transform: lowercase;">
+                                <input type="email" id="modalEmail" value="${transportadora && transportadora.email ? transportadora.email : ''}" style="text-transform: none;">
                             </div>
-                            
+
                             <div class="form-group">
                                 <label>Telefones</label>
                                 <div id="telefonesContainer">
-                                    ${telefones.map((tel, i) => `
-                                        <div class="dynamic-field">
-                                            <input type="tel" class="telefone-input" value="${toUpperCase(tel)}" placeholder="(00) 0000-0000">
-                                            ${i > 0 ? '<button type="button" class="danger small" onclick="removeField(this)">Remover</button>' : ''}
-                                        </div>
-                                    `).join('')}
+                                    ${transportadora && transportadora.telefones && transportadora.telefones.length > 0 
+                                        ? transportadora.telefones.map((tel, idx) => `
+                                            <div class="dynamic-field">
+                                                <input type="text" value="${toUpperCase(tel)}" placeholder="Telefone">
+                                                <button type="button" class="delete" onclick="this.parentElement.remove()">Remover</button>
+                                            </div>
+                                        `).join('') 
+                                        : '<div class="dynamic-field"><input type="text" placeholder="Telefone"><button type="button" class="delete" onclick="this.parentElement.remove()">Remover</button></div>'
+                                    }
                                 </div>
-                                <button type="button" class="add-field-btn small" onclick="addTelefone()">+ Adicionar Telefone</button>
+                                <button type="button" class="add-field-btn" onclick="addDynamicField('telefonesContainer', 'Telefone')">+ Adicionar Telefone</button>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label>Celulares</label>
                                 <div id="celularesContainer">
-                                    ${celulares.map((cel, i) => `
-                                        <div class="dynamic-field">
-                                            <input type="tel" class="celular-input" value="${toUpperCase(cel)}" placeholder="(00) 00000-0000">
-                                            ${i > 0 ? '<button type="button" class="danger small" onclick="removeField(this)">Remover</button>' : ''}
-                                        </div>
-                                    `).join('')}
+                                    ${transportadora && transportadora.celulares && transportadora.celulares.length > 0 
+                                        ? transportadora.celulares.map((cel, idx) => `
+                                            <div class="dynamic-field">
+                                                <input type="text" value="${toUpperCase(cel)}" placeholder="Celular">
+                                                <button type="button" class="delete" onclick="this.parentElement.remove()">Remover</button>
+                                            </div>
+                                        `).join('') 
+                                        : '<div class="dynamic-field"><input type="text" placeholder="Celular"><button type="button" class="delete" onclick="this.parentElement.remove()">Remover</button></div>'
+                                    }
                                 </div>
-                                <button type="button" class="add-field-btn small" onclick="addCelular()">+ Adicionar Celular</button>
+                                <button type="button" class="add-field-btn" onclick="addDynamicField('celularesContainer', 'Celular')">+ Adicionar Celular</button>
                             </div>
                         </div>
 
+                        <!-- ABA REGIÕES -->
                         <div class="tab-content" id="tab-regioes">
                             <div class="form-group">
                                 <label>Regiões de Atendimento</label>
-                                <div class="selection-grid" id="regioesGrid">
-                                    ${Object.keys(REGIOES_ESTADOS).map(regiao => `
-                                        <div class="selection-item ${regioesSelecionadas.includes(regiao) ? 'selected' : ''}" 
-                                             data-regiao="${regiao}"
-                                             onclick="toggleRegiao('${regiao}')">
-                                            ${regiao}
-                                        </div>
-                                    `).join('')}
+                                <div class="selection-grid" id="regioesSelection">
+                                    ${Object.keys(REGIOES_ESTADOS).map(regiao => {
+                                        const isSelected = transportadora && transportadora.regioes && transportadora.regioes.includes(regiao);
+                                        return `<div class="selection-item ${isSelected ? 'selected' : ''}" onclick="toggleSelection(this)">${regiao}</div>`;
+                                    }).join('')}
                                 </div>
                             </div>
                         </div>
 
+                        <!-- ABA ESTADOS -->
                         <div class="tab-content" id="tab-estados">
                             <div class="form-group">
                                 <label>Estados de Atendimento</label>
-                                <div class="selection-grid" id="estadosGrid">
-                                    ${TODOS_ESTADOS.map(estado => `
-                                        <div class="selection-item ${estadosSelecionados.includes(estado) ? 'selected' : ''}" 
-                                             data-estado="${estado}"
-                                             onclick="toggleEstado('${estado}')">
-                                            ${estado}
-                                        </div>
-                                    `).join('')}
+                                <div class="selection-grid" id="estadosSelection">
+                                    ${TODOS_ESTADOS.map(estado => {
+                                        const isSelected = transportadora && transportadora.estados && transportadora.estados.includes(estado);
+                                        return `<div class="selection-item ${isSelected ? 'selected' : ''}" onclick="toggleSelection(this)">${estado}</div>`;
+                                    }).join('')}
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="modal-actions">
-                            <button type="button" id="btnPrevious" onclick="previousTab()" class="secondary" style="display: none;">Anterior</button>
-                            <button type="button" id="btnNext" onclick="nextTab()" class="secondary">Próximo</button>
-                            <button type="submit" id="btnSave" class="save" style="display: none;">${isEditing ? 'Atualizar' : 'Salvar'}</button>
-                            <button type="button" onclick="closeFormModal(true)" class="secondary">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" id="btnPrevious" onclick="previousTab()" class="secondary" style="display: none;">Anterior</button>
+                        <button type="button" id="btnNext" onclick="nextTab()" class="secondary">Próximo</button>
+                        <button type="submit" id="btnSave" class="save" style="display: none;">${isEdit ? 'Salvar Alterações' : 'Cadastrar'}</button>
+                        <button type="button" onclick="closeFormModal()" class="secondary">Cancelar</button>
+                    </div>
+                </form>
             </div>
         </div>
     `;
@@ -515,65 +365,162 @@ function openFormModal(editingId = null) {
     setTimeout(() => {
         setupUpperCaseInputs();
         updateNavigationButtons();
-        document.getElementById('modalNome')?.focus();
     }, 100);
 }
 
-function closeFormModal(showCancelMessage = false) {
+function closeFormModal() {
     const modal = document.getElementById('formModal');
     if (modal) {
-        const editId = document.getElementById('editId')?.value;
-        const isEditing = editId && editId !== '';
-        
-        if (showCancelMessage) {
-            showToast(isEditing ? 'Atualização cancelada' : 'Registro cancelado', 'error');
-        }
-        
         modal.style.animation = 'fadeOut 0.2s ease forwards';
         setTimeout(() => modal.remove(), 200);
     }
 }
 
-async function handleSubmit(event) {
+function addDynamicField(containerId, placeholder) {
+    const container = document.getElementById(containerId);
+    const newField = document.createElement('div');
+    newField.className = 'dynamic-field';
+    newField.innerHTML = `
+        <input type="text" placeholder="${placeholder}">
+        <button type="button" class="delete" onclick="this.parentElement.remove()">Remover</button>
+    `;
+    container.appendChild(newField);
+    setupUpperCaseInputs();
+}
+
+function toggleSelection(element) {
+    element.classList.toggle('selected');
+}
+
+function switchTab(tabId) {
+    currentTab = tabs.indexOf(tabId);
+    
+    tabs.forEach((id, index) => {
+        const tab = document.getElementById(id);
+        const btn = document.querySelectorAll('.tabs-nav .tab-btn')[index];
+        
+        if (id === tabId) {
+            tab.classList.add('active');
+            btn.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+            btn.classList.remove('active');
+        }
+    });
+    
+    updateNavigationButtons();
+}
+
+function nextTab() {
+    if (currentTab < tabs.length - 1) {
+        switchTab(tabs[currentTab + 1]);
+    }
+}
+
+function previousTab() {
+    if (currentTab > 0) {
+        switchTab(tabs[currentTab - 1]);
+    }
+}
+
+function updateNavigationButtons() {
+    const btnPrevious = document.getElementById('btnPrevious');
+    const btnNext = document.getElementById('btnNext');
+    const btnSave = document.getElementById('btnSave');
+    
+    if (btnPrevious) btnPrevious.style.display = currentTab > 0 ? 'inline-flex' : 'none';
+    if (btnNext) btnNext.style.display = currentTab < tabs.length - 1 ? 'inline-flex' : 'none';
+    if (btnSave) btnSave.style.display = currentTab === tabs.length - 1 ? 'inline-flex' : 'none';
+}
+
+function switchViewTab(tabId) {
+    currentViewTab = viewTabs.indexOf(tabId);
+    
+    viewTabs.forEach((id, index) => {
+        const tab = document.getElementById(id);
+        const btn = document.querySelectorAll('#viewModal .tabs-nav .tab-btn')[index];
+        
+        if (tab && btn) {
+            if (id === tabId) {
+                tab.classList.add('active');
+                btn.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+                btn.classList.remove('active');
+            }
+        }
+    });
+    
+    updateViewNavigationButtons();
+}
+
+function nextViewTab() {
+    if (currentViewTab < viewTabs.length - 1) {
+        switchViewTab(viewTabs[currentViewTab + 1]);
+    } else {
+        closeViewModal();
+    }
+}
+
+function previousViewTab() {
+    if (currentViewTab > 0) {
+        switchViewTab(viewTabs[currentViewTab - 1]);
+    }
+}
+
+function updateViewNavigationButtons() {
+    const btnPrevious = document.getElementById('btnViewPrevious');
+    const btnNext = document.getElementById('btnViewNext');
+    const btnClose = document.getElementById('btnViewClose');
+    
+    if (btnPrevious) btnPrevious.style.display = currentViewTab > 0 ? 'inline-flex' : 'none';
+    if (btnNext) {
+        btnNext.textContent = currentViewTab === viewTabs.length - 1 ? 'Fechar' : 'Próximo';
+    }
+}
+
+async function submitForm(event, transportadoraId = null) {
     event.preventDefault();
-    
-    const telefones = Array.from(document.querySelectorAll('.telefone-input'))
-        .map(input => toUpperCase(input.value.trim()))
-        .filter(val => val);
 
-    const celulares = Array.from(document.querySelectorAll('.celular-input'))
-        .map(input => toUpperCase(input.value.trim()))
-        .filter(val => val);
-
-    const regioes = Array.from(document.querySelectorAll('#regioesGrid .selection-item.selected'))
-        .map(item => item.dataset.regiao);
-
-    const estados = Array.from(document.querySelectorAll('#estadosGrid .selection-item.selected'))
-        .map(item => item.dataset.estado);
-
-    const emailValue = document.getElementById('modalEmail').value.trim();
-
-    const formData = {
-        nome: toUpperCase(document.getElementById('modalNome').value.trim()),
-        email: emailValue || '',  // Sempre enviar string, nunca null
-        telefones,
-        celulares,
-        regioes,
-        estados
-    };
-
-    const editId = document.getElementById('editId').value;
-    
     if (!isOnline) {
-        showToast('Sistema offline. Dados não foram salvos.', 'error');
-        closeFormModal();
+        showToast('Sistema offline. Não foi possível salvar.', 'error');
         return;
     }
 
-    try {
-        const url = editId ? `${API_URL}/transportadoras/${editId}` : `${API_URL}/transportadoras`;
-        const method = editId ? 'PUT' : 'POST';
+    const nome = document.getElementById('modalNome').value.trim();
+    const representante = document.getElementById('modalRepresentante').value.trim();
+    const email = document.getElementById('modalEmail').value.trim();
 
+    if (!nome) {
+        showToast('Nome da transportadora é obrigatório', 'error');
+        return;
+    }
+
+    const telefones = Array.from(document.querySelectorAll('#telefonesContainer input'))
+        .map(input => input.value.trim())
+        .filter(v => v);
+
+    const celulares = Array.from(document.querySelectorAll('#celularesContainer input'))
+        .map(input => input.value.trim())
+        .filter(v => v);
+
+    const regioesSelecionadas = Array.from(document.querySelectorAll('#regioesSelection .selection-item.selected'))
+        .map(el => el.textContent.trim());
+
+    const estadosSelecionados = Array.from(document.querySelectorAll('#estadosSelection .selection-item.selected'))
+        .map(el => el.textContent.trim());
+
+    const data = {
+        nome: toUpperCase(nome),
+        representante: representante ? toUpperCase(representante) : '',
+        telefones,
+        celulares,
+        email: email.toLowerCase(),
+        regioes: regioesSelecionadas,
+        estados: estadosSelecionados
+    };
+
+    try {
         const headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
@@ -584,12 +531,15 @@ async function handleSubmit(event) {
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos para salvar
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        const url = transportadoraId ? `${API_URL}/transportadoras/${transportadoraId}` : `${API_URL}/transportadoras`;
+        const method = transportadoraId ? 'PUT' : 'POST';
 
         const response = await fetch(url, {
             method,
-            headers: headers,
-            body: JSON.stringify(formData),
+            headers,
+            body: JSON.stringify(data),
             mode: 'cors',
             signal: controller.signal
         });
@@ -603,73 +553,63 @@ async function handleSubmit(event) {
         }
 
         if (!response.ok) {
-            let errorMessage = 'Erro ao salvar';
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorData.message || errorMessage;
-            } catch (e) {
-                errorMessage = `Erro ${response.status}: ${response.statusText}`;
-            }
-            throw new Error(errorMessage);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Erro ao salvar');
         }
 
-        const savedData = await response.json();
+        const result = await response.json();
 
-        if (editId) {
-            const index = transportadoras.findIndex(t => String(t.id) === String(editId));
-            if (index !== -1) transportadoras[index] = savedData;
-            showToast('Transportadora atualizada com sucesso!', 'success');
+        if (transportadoraId) {
+            const index = transportadoras.findIndex(t => String(t.id) === String(transportadoraId));
+            if (index !== -1) transportadoras[index] = result;
         } else {
-            transportadoras.push(savedData);
-            showToast('Transportadora criada com sucesso!', 'success');
+            transportadoras.push(result);
         }
 
         lastDataHash = JSON.stringify(transportadoras.map(t => t.id));
         atualizarTransportadorasDisponiveis();
         renderTransportadorasFilter();
         filterTransportadoras();
+        
+        showToast(transportadoraId ? 'Transportadora atualizada com sucesso!' : 'Transportadora cadastrada com sucesso!', 'success');
         closeFormModal();
     } catch (error) {
-        console.error('Erro completo:', error);
+        console.error('Erro ao salvar:', error);
         if (error.name === 'AbortError') {
             showToast('Timeout: Operação demorou muito', 'error');
         } else {
-            showToast(`Erro: ${error.message}`, 'error');
+            showToast('Erro ao salvar transportadora: ' + error.message, 'error');
         }
     }
 }
 
 function viewTransportadora(id) {
-    const transportadora = transportadoras.find(t => String(t.id) === String(id));
-    if (!transportadora) return;
-    
     currentViewTab = 0;
+    const transportadora = transportadoras.find(t => String(t.id) === String(id));
+    
+    if (!transportadora) {
+        showToast('Transportadora não encontrada', 'error');
+        return;
+    }
 
-    const telefones = transportadora.telefones && transportadora.telefones.length > 0
-        ? transportadora.telefones.map(t => `<p>${toUpperCase(t)}</p>`).join('')
+    const telefones = transportadora.telefones && transportadora.telefones.length > 0 
+        ? transportadora.telefones.map(t => `<p>${toUpperCase(t)}</p>`).join('') 
         : '<p class="empty">Nenhum telefone cadastrado</p>';
 
-    const celulares = transportadora.celulares && transportadora.celulares.length > 0
-        ? transportadora.celulares.map(c => `<p>${toUpperCase(c)}</p>`).join('')
+    const celulares = transportadora.celulares && transportadora.celulares.length > 0 
+        ? transportadora.celulares.map(c => `<p>${toUpperCase(c)}</p>`).join('') 
         : '<p class="empty">Nenhum celular cadastrado</p>';
 
     const regioesHTML = transportadora.regioes && transportadora.regioes.length > 0
-        ? `<div class="selection-grid view-mode">
-            ${transportadora.regioes.map(regiao => 
-                `<div class="selection-item-view">${toUpperCase(regiao)}</div>`
-            ).join('')}
-           </div>`
+        ? `<div class="selection-grid view-mode">${transportadora.regioes.map(r => `<div class="selection-item-view">${r}</div>`).join('')}</div>`
         : '<p class="empty">Nenhuma região selecionada</p>';
 
     const estadosHTML = transportadora.estados && transportadora.estados.length > 0
-        ? `<div class="selection-grid view-mode">
-            ${transportadora.estados.map(estado => 
-                `<div class="selection-item-view">${toUpperCase(estado)}</div>`
-            ).join('')}
-           </div>`
+        ? `<div class="selection-grid view-mode">${transportadora.estados.map(e => `<div class="selection-item-view">${e}</div>`).join('')}</div>`
         : '<p class="empty">Nenhum estado selecionado</p>';
 
     const email = transportadora.email ? transportadora.email.toLowerCase() : '<span class="empty">Não informado</span>';
+    const representante = transportadora.representante ? toUpperCase(transportadora.representante) : '<span class="empty">Não informado</span>';
 
     const modalHTML = `
         <div class="modal-overlay" id="viewModal" style="display: flex;">
@@ -681,24 +621,29 @@ function viewTransportadora(id) {
                 <div class="tabs-container">
                     <div class="tabs-nav">
                         <button class="tab-btn active" onclick="switchViewTab('view-tab-geral')">Geral</button>
-                        <button class="tab-btn" onclick="switchViewTab('view-tab-contatos')">Contatos</button>
+                        <button class="tab-btn" onclick="switchViewTab('view-tab-contato')">Contato</button>
                         <button class="tab-btn" onclick="switchViewTab('view-tab-regioes')">Regiões</button>
                         <button class="tab-btn" onclick="switchViewTab('view-tab-estados')">Estados</button>
                     </div>
 
                     <div class="tab-content active" id="view-tab-geral">
                         <div class="view-section">
-                            <h4>Nome</h4>
+                            <h4>Nome da Transportadora</h4>
                             <p>${toUpperCase(transportadora.nome)}</p>
                         </div>
                         
                         <div class="view-section">
-                            <h4>E-mail</h4>
-                            <p style="text-transform: lowercase;">${email}</p>
+                            <h4>Nome do(a) Representante</h4>
+                            <p>${representante}</p>
                         </div>
                     </div>
 
-                    <div class="tab-content" id="view-tab-contatos">
+                    <div class="tab-content" id="view-tab-contato">
+                        <div class="view-section">
+                            <h4>E-mail</h4>
+                            <p style="text-transform: lowercase;">${email}</p>
+                        </div>
+                        
                         <div class="view-section">
                             <h4>Telefones</h4>
                             ${telefones}
@@ -817,6 +762,7 @@ function filterTransportadoras() {
     if (searchTerm) {
         filtered = filtered.filter(t => 
             toUpperCase(t.nome).toLowerCase().includes(searchTerm) ||
+            (t.representante && toUpperCase(t.representante).toLowerCase().includes(searchTerm)) ||
             (t.email && t.email.toLowerCase().includes(searchTerm)) ||
             (t.regioes && t.regioes.some(r => toUpperCase(r).toLowerCase().includes(searchTerm))) ||
             (t.estados && t.estados.some(e => toUpperCase(e).toLowerCase().includes(searchTerm)))
@@ -826,21 +772,6 @@ function filterTransportadoras() {
     filtered.sort((a, b) => toUpperCase(a.nome).localeCompare(toUpperCase(b.nome)));
 
     renderTransportadoras(filtered);
-}
-
-function getTimeAgo(timestamp) {
-    if (!timestamp) return 'Sem data';
-    const now = new Date();
-    const past = new Date(timestamp);
-    const diffInSeconds = Math.floor((now - past) / 1000);
-    if (diffInSeconds < 60) return `${diffInSeconds}s`;
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes}min`;
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d`;
-    return past.toLocaleDateString('pt-BR');
 }
 
 function renderTransportadoras(transportadorasToRender) {
@@ -861,14 +792,15 @@ function renderTransportadoras(transportadorasToRender) {
         const primeiroTelefone = t.telefones && t.telefones.length > 0 ? toUpperCase(t.telefones[0]) : '-';
         const primeiroCelular = t.celulares && t.celulares.length > 0 ? toUpperCase(t.celulares[0]) : '-';
         const email = t.email || '-';
+        const representante = t.representante ? toUpperCase(t.representante) : '-';
         
         return `
             <tr>
                 <td><strong>${toUpperCase(t.nome)}</strong></td>
+                <td>${representante}</td>
                 <td>${primeiroTelefone}</td>
                 <td>${primeiroCelular}</td>
                 <td style="text-transform: lowercase;">${email}</td>
-                <td style="color: var(--text-secondary); font-size: 0.85rem;">${getTimeAgo(t.timestamp)}</td>
                 <td class="actions-cell" style="text-align: center;">
                     <button onclick="viewTransportadora('${t.id}')" class="action-btn view">Ver</button>
                     <button onclick="editTransportadora('${t.id}')" class="action-btn edit">Editar</button>
@@ -880,6 +812,7 @@ function renderTransportadoras(transportadorasToRender) {
 }
 
 function showToast(message, type = 'success') {
+    // Remove mensagens antigas
     const oldMessages = document.querySelectorAll('.floating-message');
     oldMessages.forEach(msg => msg.remove());
     
@@ -888,4 +821,10 @@ function showToast(message, type = 'success') {
     messageDiv.textContent = message;
     
     document.body.appendChild(messageDiv);
+    
+    // Remove automaticamente após 3 segundos
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideOutBottom 0.3s ease forwards';
+        setTimeout(() => messageDiv.remove(), 300);
+    }, 3000);
 }
