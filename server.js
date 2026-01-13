@@ -253,7 +253,7 @@ app.get('/api/transportadoras/:id', async (req, res) => {
 // Criar nova transportadora
 app.post('/api/transportadoras', async (req, res) => {
     try {
-        const { nome, telefones, celulares, email, regioes, estados } = req.body;
+        const { nome, representante, telefones, celulares, email, regioes, estados } = req.body;
 
         console.log('➕ Criando transportadora:', nome);
 
@@ -263,6 +263,7 @@ app.post('/api/transportadoras', async (req, res) => {
 
         const transportadoraData = {
             nome: nome.trim().toUpperCase(),
+            representante: representante ? representante.trim().toUpperCase() : '',
             telefones: telefones || [],
             celulares: celulares || [],
             email: email ? email.trim().toLowerCase() : '',
@@ -296,7 +297,7 @@ app.post('/api/transportadoras', async (req, res) => {
 // Atualizar transportadora
 app.put('/api/transportadoras/:id', async (req, res) => {
     try {
-        const { nome, telefones, celulares, email, regioes, estados } = req.body;
+        const { nome, representante, telefones, celulares, email, regioes, estados } = req.body;
 
         console.log('✏️ Atualizando transportadora:', req.params.id);
 
@@ -306,6 +307,7 @@ app.put('/api/transportadoras/:id', async (req, res) => {
 
         const transportadoraData = {
             nome: nome.trim().toUpperCase(),
+            representante: representante ? representante.trim().toUpperCase() : '',
             telefones: telefones || [],
             celulares: celulares || [],
             email: email ? email.trim().toLowerCase() : '',
@@ -403,7 +405,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Porta: ${PORT}`);
     console.log(`✅ Database: Conectado ao Supabase`);
     console.log(`✅ Autenticação: Ativa (Portal)`);
-    console.log(`📝 Logs: acessos.log`);
+    console.log(`📁 Logs: acessos.log`);
     console.log('🚀 ========================================\n');
 });
 
