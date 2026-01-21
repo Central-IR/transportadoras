@@ -604,7 +604,7 @@ button.small {
     border-radius: 10px;
     font-weight: 500;
     font-size: 0.95rem;
-    z-index: 9999999;
+    z-index: 99999999;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     border: 1px solid;
     animation: slideInBottom 0.3s ease;
@@ -717,19 +717,26 @@ button.small {
 }
 
 .close-modal {
-    background: none;
+    background: #F3F4F6;
     border: none;
     font-size: 1.5rem;
-    color: var(--text-secondary);
+    color: #4B5563;
     cursor: pointer;
     padding: 0;
     margin: 0;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-weight: 400;
 }
 
 .close-modal:hover {
-    color: var(--text-primary);
+    background: #E5E7EB;
+    color: #1F2937;
 }
 
 /* SISTEMA DE ABAS */
