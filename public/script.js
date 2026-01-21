@@ -11,8 +11,8 @@ let sessionToken = null;
 let currentTab = 0;
 let currentViewTab = 0;
 
-const tabs = ['tab-geral', 'tab-contato', 'tab-regioes', 'tab-estados', 'tab-precos'];
-const viewTabs = ['view-tab-geral', 'view-tab-contato', 'view-tab-regioes', 'view-tab-estados', 'view-tab-precos'];
+const tabs = ['tab-geral', 'tab-contato', 'tab-regioes', 'tab-estados'];
+const viewTabs = ['view-tab-geral', 'view-tab-contato', 'view-tab-regioes', 'view-tab-estados'];
 
 console.log('🚀 Transportadoras iniciada');
 console.log('📍 API URL:', API_URL);
@@ -24,7 +24,7 @@ function toUpperCase(value) {
 
 // Converter input para maiúsculo automaticamente
 function setupUpperCaseInputs() {
-    const textInputs = document.querySelectorAll('input[type="text"]:not([readonly]):not([type="email"]):not(.no-uppercase), textarea');
+    const textInputs = document.querySelectorAll('input[type="text"]:not([readonly]):not([type="email"]), textarea');
     textInputs.forEach(input => {
         if (input.type !== 'email' && input.id !== 'modalEmail') {
             input.addEventListener('input', function(e) {
@@ -99,7 +99,7 @@ async function checkServerStatus() {
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         const response = await fetch(`${API_URL}/transportadoras`, {
             method: 'GET',
@@ -266,7 +266,6 @@ function openFormModal(transportadoraId = null) {
                             <button type="button" class="tab-btn" onclick="switchTab('tab-contato')">Contato</button>
                             <button type="button" class="tab-btn" onclick="switchTab('tab-regioes')">Regiões</button>
                             <button type="button" class="tab-btn" onclick="switchTab('tab-estados')">Estados</button>
-                            <button type="button" class="tab-btn" onclick="switchTab('tab-precos')">Tabela de Preços</button>
                         </div>
 
                         <!-- ABA GERAL -->
@@ -348,39 +347,6 @@ function openFormModal(transportadoraId = null) {
                                 </div>
                             </div>
                         </div>
-
-                        <!-- ABA TABELA DE PREÇOS -->
-                        <div class="tab-content" id="tab-precos">
-                            <div class="form-group">
-                                <label>Tabela de Preços</label>
-                                <div class="price-table-grid">
-                                    <div class="price-item">
-                                        <label for="preco0a50">0 a 50 KG</label>
-                                        <input type="text" id="preco0a50" class="no-uppercase price-input" placeholder="R$ 0,00" value="${transportadora && transportadora.tabelaPrecos && transportadora.tabelaPrecos['0a50'] ? transportadora.tabelaPrecos['0a50'] : ''}">
-                                    </div>
-                                    <div class="price-item">
-                                        <label for="preco51a100">51 a 100 KG</label>
-                                        <input type="text" id="preco51a100" class="no-uppercase price-input" placeholder="R$ 0,00" value="${transportadora && transportadora.tabelaPrecos && transportadora.tabelaPrecos['51a100'] ? transportadora.tabelaPrecos['51a100'] : ''}">
-                                    </div>
-                                    <div class="price-item">
-                                        <label for="preco101a200">101 a 200 KG</label>
-                                        <input type="text" id="preco101a200" class="no-uppercase price-input" placeholder="R$ 0,00" value="${transportadora && transportadora.tabelaPrecos && transportadora.tabelaPrecos['101a200'] ? transportadora.tabelaPrecos['101a200'] : ''}">
-                                    </div>
-                                    <div class="price-item">
-                                        <label for="preco201a300">201 a 300 KG</label>
-                                        <input type="text" id="preco201a300" class="no-uppercase price-input" placeholder="R$ 0,00" value="${transportadora && transportadora.tabelaPrecos && transportadora.tabelaPrecos['201a300'] ? transportadora.tabelaPrecos['201a300'] : ''}">
-                                    </div>
-                                    <div class="price-item">
-                                        <label for="preco301a500">301 a 500 KG</label>
-                                        <input type="text" id="preco301a500" class="no-uppercase price-input" placeholder="R$ 0,00" value="${transportadora && transportadora.tabelaPrecos && transportadora.tabelaPrecos['301a500'] ? transportadora.tabelaPrecos['301a500'] : ''}">
-                                    </div>
-                                    <div class="price-item">
-                                        <label for="preco501mais">501 KG ou mais</label>
-                                        <input type="text" id="preco501mais" class="no-uppercase price-input" placeholder="R$ 0,00" value="${transportadora && transportadora.tabelaPrecos && transportadora.tabelaPrecos['501mais'] ? transportadora.tabelaPrecos['501mais'] : ''}">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="modal-actions">
@@ -398,28 +364,8 @@ function openFormModal(transportadoraId = null) {
     
     setTimeout(() => {
         setupUpperCaseInputs();
-        setupPriceInputs();
         updateNavigationButtons();
     }, 100);
-}
-
-function setupPriceInputs() {
-    const priceInputs = document.querySelectorAll('.price-input');
-    priceInputs.forEach(input => {
-        input.addEventListener('input', function(e) {
-            let value = this.value.replace(/\D/g, '');
-            if (value) {
-                value = (parseInt(value) / 100).toFixed(2);
-                this.value = 'R$ ' + value.replace('.', ',');
-            }
-        });
-        
-        input.addEventListener('blur', function() {
-            if (!this.value || this.value === 'R$ 0,00') {
-                this.value = '';
-            }
-        });
-    });
 }
 
 function closeFormModal() {
@@ -564,16 +510,6 @@ async function submitForm(event, transportadoraId = null) {
     const estadosSelecionados = Array.from(document.querySelectorAll('#estadosSelection .selection-item.selected'))
         .map(el => el.textContent.trim());
 
-    // Coletar tabela de preços
-    const tabelaPrecos = {
-        '0a50': document.getElementById('preco0a50').value.trim(),
-        '51a100': document.getElementById('preco51a100').value.trim(),
-        '101a200': document.getElementById('preco101a200').value.trim(),
-        '201a300': document.getElementById('preco201a300').value.trim(),
-        '301a500': document.getElementById('preco301a500').value.trim(),
-        '501mais': document.getElementById('preco501mais').value.trim()
-    };
-
     const data = {
         nome: toUpperCase(nome),
         representante: representante ? toUpperCase(representante) : '',
@@ -581,8 +517,7 @@ async function submitForm(event, transportadoraId = null) {
         celulares,
         email: email.toLowerCase(),
         regioes: regioesSelecionadas,
-        estados: estadosSelecionados,
-        tabelaPrecos
+        estados: estadosSelecionados
     };
 
     try {
@@ -676,39 +611,6 @@ function viewTransportadora(id) {
     const email = transportadora.email ? transportadora.email.toLowerCase() : '<span class="empty">Não informado</span>';
     const representante = transportadora.representante ? toUpperCase(transportadora.representante) : '<span class="empty">Não informado</span>';
 
-    // Renderizar tabela de preços
-    let precosHTML = '<p class="empty">Nenhum preço cadastrado</p>';
-    if (transportadora.tabelaPrecos && Object.values(transportadora.tabelaPrecos).some(v => v)) {
-        precosHTML = `
-            <div class="price-table-grid view-mode">
-                <div class="price-item-view">
-                    <strong>0 a 50 KG:</strong>
-                    <span>${transportadora.tabelaPrecos['0a50'] || 'X'}</span>
-                </div>
-                <div class="price-item-view">
-                    <strong>51 a 100 KG:</strong>
-                    <span>${transportadora.tabelaPrecos['51a100'] || 'X'}</span>
-                </div>
-                <div class="price-item-view">
-                    <strong>101 a 200 KG:</strong>
-                    <span>${transportadora.tabelaPrecos['101a200'] || 'X'}</span>
-                </div>
-                <div class="price-item-view">
-                    <strong>201 a 300 KG:</strong>
-                    <span>${transportadora.tabelaPrecos['201a300'] || 'X'}</span>
-                </div>
-                <div class="price-item-view">
-                    <strong>301 a 500 KG:</strong>
-                    <span>${transportadora.tabelaPrecos['301a500'] || 'X'}</span>
-                </div>
-                <div class="price-item-view">
-                    <strong>501 KG ou mais:</strong>
-                    <span>${transportadora.tabelaPrecos['501mais'] || 'X'}</span>
-                </div>
-            </div>
-        `;
-    }
-
     const modalHTML = `
         <div class="modal-overlay" id="viewModal" style="display: flex;">
             <div class="modal-content extra-large">
@@ -722,7 +624,6 @@ function viewTransportadora(id) {
                         <button class="tab-btn" onclick="switchViewTab('view-tab-contato')">Contato</button>
                         <button class="tab-btn" onclick="switchViewTab('view-tab-regioes')">Regiões</button>
                         <button class="tab-btn" onclick="switchViewTab('view-tab-estados')">Estados</button>
-                        <button class="tab-btn" onclick="switchViewTab('view-tab-precos')">Tabela de Preços</button>
                     </div>
 
                     <div class="tab-content active" id="view-tab-geral">
@@ -765,13 +666,6 @@ function viewTransportadora(id) {
                         <div class="view-section">
                             <h4>Estados de Atendimento</h4>
                             ${estadosHTML}
-                        </div>
-                    </div>
-
-                    <div class="tab-content" id="view-tab-precos">
-                        <div class="view-section">
-                            <h4>Tabela de Preços</h4>
-                            ${precosHTML}
                         </div>
                     </div>
                     
@@ -918,7 +812,6 @@ function renderTransportadoras(transportadorasToRender) {
 }
 
 function showToast(message, type = 'success') {
-    // Remove mensagens antigas
     const oldMessages = document.querySelectorAll('.floating-message');
     oldMessages.forEach(msg => msg.remove());
     
@@ -928,7 +821,6 @@ function showToast(message, type = 'success') {
     
     document.body.appendChild(messageDiv);
     
-    // Remove automaticamente após 3 segundos
     setTimeout(() => {
         messageDiv.style.animation = 'slideOutBottom 0.3s ease forwards';
         setTimeout(() => messageDiv.remove(), 300);
