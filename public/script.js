@@ -256,7 +256,7 @@ function openFormModal(transportadoraId = null) {
             <div class="modal-content extra-large">
                 <div class="modal-header">
                     <h3 class="modal-title">${titulo}</h3>
-                    <button class="close-modal" onclick="closeFormModal()">&times;</button>
+                    <button class="close-modal" onclick="closeFormModal()">X</button>
                 </div>
                 
                 <form id="transportadoraForm" onsubmit="submitForm(event, ${isEdit ? `'${transportadoraId}'` : 'null'})">
@@ -616,6 +616,7 @@ function viewTransportadora(id) {
             <div class="modal-content extra-large">
                 <div class="modal-header">
                     <h3 class="modal-title">Detalhes da Transportadora</h3>
+                    <button class="close-modal" onclick="closeViewModal()">X</button>
                 </div>
                 
                 <div class="tabs-container">
