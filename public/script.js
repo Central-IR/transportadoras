@@ -700,7 +700,38 @@ function editTransportadora(id) {
 }
 
 async function deleteTransportadora(id) {
-    if (!confirm('Tem certeza que deseja excluir esta transportadora?')) return;
+    showDeleteModal(id);
+}
+
+function showDeleteModal(id) {
+    const modalHTML = `
+        <div class="modal-overlay" id="deleteModal" style="display: flex;">
+            <div class="modal-content modal-delete">
+                <button class="close-modal" onclick="closeDeleteModal()">✕</button>
+                <div class="modal-message-delete">
+                    Tem certeza que deseja excluir esta transportadora?
+                </div>
+                <div class="modal-actions modal-actions-no-border">
+                    <button type="button" onclick="confirmDelete('${id}')" class="danger">Sim</button>
+                    <button type="button" onclick="closeDeleteModal()" class="secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.2s ease forwards';
+        setTimeout(() => modal.remove(), 200);
+    }
+}
+
+async function confirmDelete(id) {
+    closeDeleteModal();
 
     if (!isOnline) {
         showToast('Sistema offline. Não foi possível excluir.', 'error');
