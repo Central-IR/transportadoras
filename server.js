@@ -197,29 +197,59 @@ app.use('/api', verificarAutenticacao);
 // ROTAS DA API - TRANSPORTADORAS
 // ============================================
 
-// Listar todas as transportadoras
-app.get('/api/transportadoras', async (req, res) => {
+// Listar nomes disponíveis (para filtros, sem paginação)
+app.get('/api/transportadoras/nomes', async (req, res) => {
     try {
-        console.log('📋 Buscando transportadoras...');
-        
         const { data, error } = await supabase
             .from('transportadoras')
-            .select('*')
+            .select('nome');
+        if (error) throw error;
+        const nomes = [...new Set((data || []).map(r => r.nome?.trim().toUpperCase()).filter(Boolean))].sort();
+        res.json(nomes);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar nomes' });
+    }
+});
+
+// Listar transportadoras (com paginação)
+app.get('/api/transportadoras', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = Math.min(parseInt(req.query.limit) || 50, 50);
+        const nome = req.query.nome || null;
+        const search = req.query.search || null;
+
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
+        let query = supabase
+            .from('transportadoras')
+            .select('*', { count: 'exact' })
             .order('nome', { ascending: true });
 
-        if (error) {
-            console.error('❌ Erro ao buscar transportadoras:', error);
-            throw error;
+        if (nome && nome !== 'TODAS') {
+            query = query.ilike('nome', nome);
         }
-        
-        console.log(`✅ ${data?.length || 0} transportadoras encontradas`);
-        res.json(data || []);
+
+        if (search) {
+            query = query.or(`nome.ilike.%${search}%,representante.ilike.%${search}%,email.ilike.%${search}%`);
+        }
+
+        query = query.range(from, to);
+
+        const { data, error, count } = await query;
+        if (error) throw error;
+
+        res.json({
+            data: data || [],
+            total: count || 0,
+            page,
+            limit,
+            totalPages: Math.ceil((count || 0) / limit)
+        });
     } catch (error) {
         console.error('❌ Erro na rota GET /transportadoras:', error);
-        res.status(500).json({ 
-            error: 'Erro ao buscar transportadoras',
-            message: error.message
-        });
+        res.status(500).json({ error: 'Erro ao buscar transportadoras', message: error.message });
     }
 });
 
