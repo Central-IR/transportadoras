@@ -9,9 +9,7 @@ let state = {
     currentPage: 1,
     totalPages: 1,
     totalRecords: 0,
-    nomeSelecionado: 'TODAS',
     searchTerm: '',
-    nomesDisponiveis: [],
     isLoading: false
 };
 
@@ -152,31 +150,17 @@ async function verificarConexao() {
 
 async function carregarTudo() {
     try {
-        const [nomesRes, dadosRes] = await Promise.all([
-            fetchWithTimeout(`${API_URL}/transportadoras/nomes`, { method: 'GET', headers: getHeaders() }),
-            fetchWithTimeout(`${API_URL}/transportadoras?page=1&limit=${PAGE_SIZE}`, { method: 'GET', headers: getHeaders() })
-        ]);
+        const response = await fetchWithTimeout(`${API_URL}/transportadoras?page=1&limit=${PAGE_SIZE}`, {
+            method: 'GET', headers: getHeaders()
+        });
 
-        // Nomes para os filtros (todos, sem limite de paginação)
-        if (nomesRes.ok) {
-            const nomes = await nomesRes.json();
-            state.nomesDisponiveis = Array.isArray(nomes) ? nomes : [];
-            renderTransportadorasFilter();
-        }
-
-        // Primeira página
-        if (dadosRes.ok) {
-            const result = await dadosRes.json();
+        if (response.ok) {
+            const result = await response.json();
             if (Array.isArray(result)) {
-                // Servidor antigo sem paginação
                 state.transportadoras = result;
                 state.totalRecords = result.length;
                 state.totalPages = 1;
                 state.currentPage = 1;
-                if (!nomesRes.ok) {
-                    state.nomesDisponiveis = [...new Set(result.map(t => toUpperCase(t.nome?.trim())).filter(Boolean))].sort();
-                    renderTransportadorasFilter();
-                }
             } else {
                 state.transportadoras = result.data || [];
                 state.totalRecords = result.total || 0;
@@ -193,44 +177,6 @@ async function carregarTudo() {
     }
 }
 
-async function atualizarNomes() {
-    try {
-        const response = await fetchWithTimeout(`${API_URL}/transportadoras/nomes`, {
-            method: 'GET', headers: getHeaders()
-        });
-        if (response.ok) {
-            const nomes = await response.json();
-            state.nomesDisponiveis = Array.isArray(nomes) ? nomes : [];
-            renderTransportadorasFilter();
-        }
-    } catch (err) {
-        console.error('Erro ao atualizar nomes:', err);
-    }
-}
-
-// ─── FILTROS ──────────────────────────────────────────────────────────────────
-
-function renderTransportadorasFilter() {
-    const container = document.getElementById('transportadorasFilter');
-    if (!container) return;
-
-    const todasBtn = `<button class="brand-button ${state.nomeSelecionado === 'TODAS' ? 'active' : ''}" onclick="selecionarTransportadora('TODAS')">TODAS</button>`;
-    const btns = state.nomesDisponiveis.map(nome =>
-        `<button class="brand-button ${state.nomeSelecionado === nome ? 'active' : ''}" onclick="selecionarTransportadora('${nome.replace(/'/g, "\\'")}')"> ${nome}</button>`
-    ).join('');
-
-    container.innerHTML = todasBtn + btns;
-}
-
-function selecionarTransportadora(nome) {
-    state.nomeSelecionado = nome;
-    state.searchTerm = '';
-    const searchInput = document.getElementById('search');
-    if (searchInput) searchInput.value = '';
-    renderTransportadorasFilter();
-    loadTransportadoras(1);
-}
-
 // ─── PAGINAÇÃO / DADOS ────────────────────────────────────────────────────────
 
 async function loadTransportadoras(page = 1, showLoader = true) {
@@ -242,7 +188,6 @@ async function loadTransportadoras(page = 1, showLoader = true) {
 
     try {
         const params = new URLSearchParams({ page, limit: PAGE_SIZE });
-        if (state.nomeSelecionado !== 'TODAS') params.set('nome', state.nomeSelecionado);
         if (state.searchTerm) params.set('search', state.searchTerm);
 
         const response = await fetchWithTimeout(`${API_URL}/transportadoras?${params}`, {
@@ -558,7 +503,6 @@ async function submitForm(event, transportadoraId = null) {
 
         closeFormModal();
         showToast(transportadoraId ? 'Transportadora atualizada com sucesso!' : 'Transportadora cadastrada com sucesso!', 'success');
-        atualizarNomes();
         loadTransportadoras(transportadoraId ? state.currentPage : 1);
 
     } catch (error) {
@@ -707,7 +651,6 @@ async function confirmDelete(id) {
         const pageToLoad = state.transportadoras.length === 1 && state.currentPage > 1
             ? state.currentPage - 1 : state.currentPage;
 
-        atualizarNomes();
         loadTransportadoras(pageToLoad);
 
     } catch (error) {
