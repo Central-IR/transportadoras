@@ -197,26 +197,11 @@ app.use('/api', verificarAutenticacao);
 // ROTAS DA API - TRANSPORTADORAS
 // ============================================
 
-// Listar nomes disponíveis (para filtros, sem paginação)
-app.get('/api/transportadoras/nomes', async (req, res) => {
-    try {
-        const { data, error } = await supabase
-            .from('transportadoras')
-            .select('nome');
-        if (error) throw error;
-        const nomes = [...new Set((data || []).map(r => r.nome?.trim().toUpperCase()).filter(Boolean))].sort();
-        res.json(nomes);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar nomes' });
-    }
-});
-
 // Listar transportadoras (com paginação)
 app.get('/api/transportadoras', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = Math.min(parseInt(req.query.limit) || 50, 50);
-        const nome = req.query.nome || null;
         const search = req.query.search || null;
 
         const from = (page - 1) * limit;
@@ -226,10 +211,6 @@ app.get('/api/transportadoras', async (req, res) => {
             .from('transportadoras')
             .select('*', { count: 'exact' })
             .order('nome', { ascending: true });
-
-        if (nome && nome !== 'TODAS') {
-            query = query.ilike('nome', nome);
-        }
 
         if (search) {
             query = query.or(`nome.ilike.%${search}%,representante.ilike.%${search}%,email.ilike.%${search}%`);
