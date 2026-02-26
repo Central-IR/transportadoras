@@ -799,26 +799,20 @@ button.small {
 
 /* VIEW SECTION */
 .view-section {
-    margin-bottom: 0.6rem;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.3rem;
-    line-height: 1.7;
+    margin-bottom: 1.5rem;
 }
 
 .view-section h4 {
-    color: var(--text-primary);
-    margin-bottom: 0;
-    font-size: 0.95rem;
-    font-weight: 700;
-    display: inline;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .view-section p {
-    margin: 0;
-    display: inline;
-    line-height: 1.7;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
 }
 
 .view-section .empty {
