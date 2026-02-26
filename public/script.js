@@ -10,7 +10,6 @@ let state = {
     totalPages: 1,
     totalRecords: 0,
     searchTerm: '',
-    isLoading: false
 };
 
 let isOnline = false;
@@ -102,7 +101,7 @@ function inicializarApp() {
     }, 15000);
 
     setInterval(() => {
-        if (isOnline && !state.isLoading) loadTransportadoras(state.currentPage, false);
+        if (isOnline) loadTransportadoras(state.currentPage, false);
     }, 30000);
 }
 
@@ -179,12 +178,8 @@ async function carregarTudo() {
 
 // ─── PAGINAÇÃO / DADOS ────────────────────────────────────────────────────────
 
-async function loadTransportadoras(page = 1, showLoader = true) {
-    if (state.isLoading) return;
-    state.isLoading = true;
+async function loadTransportadoras(page = 1) {
     state.currentPage = page;
-
-    if (showLoader) renderLoading();
 
     try {
         const params = new URLSearchParams({ page, limit: PAGE_SIZE });
@@ -218,34 +213,44 @@ async function loadTransportadoras(page = 1, showLoader = true) {
 
         isOnline = true;
         updateConnectionStatus();
+        if (!state.searchTerm) state.allTransportadoras = state.transportadoras.slice();
         renderTransportadoras();
         renderPaginacao();
 
     } catch (error) {
         console.error(error.name === 'AbortError' ? '❌ Timeout' : '❌ Erro:', error);
-    } finally {
-        state.isLoading = false;
     }
 }
 
+let _searchDebounce = null;
 function filterTransportadoras() {
-    state.searchTerm = document.getElementById('search').value.trim();
-    loadTransportadoras(1);
+    const termo = document.getElementById('search').value.trim().toLowerCase();
+    state.searchTerm = termo;
+
+    if (!termo) {
+        // Sem filtro — exibe tudo do cache
+        state.transportadoras = state.allTransportadoras.slice();
+    } else {
+        state.transportadoras = state.allTransportadoras.filter(t => {
+            const nome = (t.nome || '').toLowerCase();
+            const rep  = (t.representante || '').toLowerCase();
+            const mail = (t.email || '').toLowerCase();
+            const regs = (t.regioes || []).join(' ').toLowerCase();
+            const ests = (t.estados || []).join(' ').toLowerCase();
+            return nome.includes(termo) || rep.includes(termo) ||
+                   mail.includes(termo) || regs.includes(termo) || ests.includes(termo);
+        });
+    }
+    state.totalRecords = state.transportadoras.length;
+    state.totalPages = 1;
+    state.currentPage = 1;
+    renderTransportadoras();
+    renderPaginacao();
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
 
-function renderLoading() {
-    const container = document.getElementById('transportadorasContainer');
-    if (container) {
-        container.innerHTML = `
-            <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-secondary);">
-                <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;">
-                    <div class="loader" style="width:24px;height:24px;border-width:3px;"></div>Carregando...
-                </div>
-            </td></tr>`;
-    }
-}
+
 
 function renderTransportadoras() {
     const container = document.getElementById('transportadorasContainer');
@@ -335,7 +340,7 @@ function openFormModal(transportadoraId = null) {
         <div class="modal-overlay" id="formModal" style="display:flex;">
             <div class="modal-content extra-large">
                 <div class="modal-header">
-                    <h3 class="modal-title">${isEdit ? 'Editar Transportadora' : 'Nova Transportadora'}</h3>
+                    <h3 class="modal-title">${isEdit ? toUpperCase(transportadora.nome) : 'Nova Transportadora'}</h3>
                     <button class="close-modal" onclick="closeFormModal()">✕</button>
                 </div>
                 <form id="transportadoraForm" onsubmit="submitForm(event, ${isEdit ? `'${transportadoraId}'` : 'null'})">
@@ -517,26 +522,26 @@ function viewTransportadora(id) {
     const t = state.transportadoras.find(t => String(t.id) === String(id));
     if (!t) { showToast('Transportadora não encontrada', 'error'); return; }
 
-    const telefones = t.telefones && t.telefones.length > 0
-        ? t.telefones.map(v => `<p>${toUpperCase(v)}</p>`).join('')
-        : '<p class="empty">Nenhum telefone cadastrado</p>';
-    const celulares = t.celulares && t.celulares.length > 0
-        ? t.celulares.map(v => `<p>${toUpperCase(v)}</p>`).join('')
-        : '<p class="empty">Nenhum celular cadastrado</p>';
-    const regioesHTML = t.regioes && t.regioes.length > 0
-        ? `<div class="selection-grid view-mode">${t.regioes.map(r => `<div class="selection-item-view">${r}</div>`).join('')}</div>`
-        : '<p class="empty">Nenhuma região selecionada</p>';
-    const estadosHTML = t.estados && t.estados.length > 0
-        ? `<div class="selection-grid view-mode">${t.estados.map(e => `<div class="selection-item-view">${e}</div>`).join('')}</div>`
-        : '<p class="empty">Nenhum estado selecionado</p>';
-    const email = t.email ? t.email.toLowerCase() : '<span class="empty">Não informado</span>';
-    const representante = t.representante ? toUpperCase(t.representante) : '<span class="empty">Não informado</span>';
+    const telefonesList = t.telefones && t.telefones.length > 0
+        ? t.telefones.map(v => toUpperCase(v)).join('; ')
+        : 'Nenhum telefone cadastrado';
+    const celularesList = t.celulares && t.celulares.length > 0
+        ? t.celulares.map(v => toUpperCase(v)).join('; ')
+        : 'Nenhum celular cadastrado';
+    const regioesText = t.regioes && t.regioes.length > 0
+        ? t.regioes.join('; ')
+        : 'Nenhuma região selecionada';
+    const estadosText = t.estados && t.estados.length > 0
+        ? t.estados.join('; ')
+        : 'Nenhum estado selecionado';
+    const email = t.email ? t.email.toLowerCase() : 'Não informado';
+    const representante = t.representante ? toUpperCase(t.representante) : 'Não informado';
 
     document.body.insertAdjacentHTML('beforeend', `
         <div class="modal-overlay" id="viewModal" style="display:flex;">
             <div class="modal-content extra-large">
                 <div class="modal-header">
-                    <h3 class="modal-title">Detalhes da Transportadora</h3>
+                    <h3 class="modal-title">${toUpperCase(t.nome)}</h3>
                     <button class="close-modal" onclick="closeViewModal()">✕</button>
                 </div>
                 <div class="tabs-container">
@@ -547,24 +552,24 @@ function viewTransportadora(id) {
                         <button class="tab-btn" onclick="switchViewTab('view-tab-estados')">Estados</button>
                     </div>
                     <div class="tab-content active" id="view-tab-geral">
-                        <div class="view-section"><h4>Nome da Transportadora</h4><p>${toUpperCase(t.nome)}</p></div>
-                        <div class="view-section"><h4>Nome do(a) Representante</h4><p>${representante}</p></div>
+                        <div class="view-section"><h4>Nome:</h4><p>${toUpperCase(t.nome)}</p></div>
+                        <div class="view-section"><h4>Representante:</h4><p>${representante}</p></div>
                     </div>
                     <div class="tab-content" id="view-tab-contato">
-                        <div class="view-section"><h4>E-mail</h4><p style="text-transform:lowercase;">${email}</p></div>
-                        <div class="view-section"><h4>Telefones</h4>${telefones}</div>
-                        <div class="view-section"><h4>Celulares</h4>${celulares}</div>
+                        <div class="view-section"><h4>E-mail:</h4><p style="text-transform:lowercase;">${email}</p></div>
+                        <div class="view-section"><h4>Telefones:</h4><p>${telefonesList}</p></div>
+                        <div class="view-section"><h4>Celulares:</h4><p>${celularesList}</p></div>
                     </div>
                     <div class="tab-content" id="view-tab-regioes">
-                        <div class="view-section"><h4>Regiões de Atendimento</h4>${regioesHTML}</div>
+                        <div class="view-section"><h4>Regiões:</h4><p>${regioesText}</p></div>
                     </div>
                     <div class="tab-content" id="view-tab-estados">
-                        <div class="view-section"><h4>Estados de Atendimento</h4>${estadosHTML}</div>
+                        <div class="view-section"><h4>Estados:</h4><p>${estadosText}</p></div>
                     </div>
                     <div class="modal-actions">
                         <button type="button" id="btnViewPrevious" onclick="previousViewTab()" class="secondary" style="display:none;">Anterior</button>
                         <button type="button" id="btnViewNext" onclick="nextViewTab()" class="secondary">Próximo</button>
-                        <button type="button" id="btnViewClose" onclick="closeViewModal()" class="secondary">Fechar</button>
+
                     </div>
                 </div>
             </div>
@@ -618,7 +623,7 @@ function showDeleteModal(id) {
                 <div class="modal-message-delete">Tem certeza que deseja excluir esta transportadora?</div>
                 <div class="modal-actions modal-actions-no-border">
                     <button type="button" onclick="confirmDelete('${id}')" class="danger">Sim</button>
-                    <button type="button" onclick="closeDeleteModal()" class="danger">Cancelar</button>
+                    <button type="button" onclick="closeDeleteModal()" class="secondary">Cancelar</button>
                 </div>
             </div>
         </div>`);
