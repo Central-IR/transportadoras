@@ -522,20 +522,20 @@ function viewTransportadora(id) {
     const t = state.transportadoras.find(t => String(t.id) === String(id));
     if (!t) { showToast('Transportadora não encontrada', 'error'); return; }
 
-    const telefonesList = t.telefones && t.telefones.length > 0
-        ? t.telefones.map(v => toUpperCase(v)).join('; ')
-        : 'Nenhum telefone cadastrado';
-    const celularesList = t.celulares && t.celulares.length > 0
-        ? t.celulares.map(v => toUpperCase(v)).join('; ')
-        : 'Nenhum celular cadastrado';
-    const regioesText = t.regioes && t.regioes.length > 0
-        ? t.regioes.join('; ')
-        : 'Nenhuma região selecionada';
-    const estadosText = t.estados && t.estados.length > 0
-        ? t.estados.join('; ')
-        : 'Nenhum estado selecionado';
-    const email = t.email ? t.email.toLowerCase() : 'Não informado';
-    const representante = t.representante ? toUpperCase(t.representante) : 'Não informado';
+    const telefones = t.telefones && t.telefones.length > 0
+        ? t.telefones.map(v => `<p>${toUpperCase(v)}</p>`).join('')
+        : '<p class="empty">Nenhum telefone cadastrado</p>';
+    const celulares = t.celulares && t.celulares.length > 0
+        ? t.celulares.map(v => `<p>${toUpperCase(v)}</p>`).join('')
+        : '<p class="empty">Nenhum celular cadastrado</p>';
+    const regioesHTML = t.regioes && t.regioes.length > 0
+        ? `<div class="selection-grid view-mode">${t.regioes.map(r => `<div class="selection-item-view">${r}</div>`).join('')}</div>`
+        : '<p class="empty">Nenhuma região selecionada</p>';
+    const estadosHTML = t.estados && t.estados.length > 0
+        ? `<div class="selection-grid view-mode">${t.estados.map(e => `<div class="selection-item-view">${e}</div>`).join('')}</div>`
+        : '<p class="empty">Nenhum estado selecionado</p>';
+    const email = t.email ? t.email.toLowerCase() : '<span class="empty">Não informado</span>';
+    const representante = t.representante ? toUpperCase(t.representante) : '<span class="empty">Não informado</span>';
 
     document.body.insertAdjacentHTML('beforeend', `
         <div class="modal-overlay" id="viewModal" style="display:flex;">
@@ -552,19 +552,19 @@ function viewTransportadora(id) {
                         <button class="tab-btn" onclick="switchViewTab('view-tab-estados')">Estados</button>
                     </div>
                     <div class="tab-content active" id="view-tab-geral">
-                        <div class="view-section"><h4>Nome:</h4><p>${toUpperCase(t.nome)}</p></div>
-                        <div class="view-section"><h4>Representante:</h4><p>${representante}</p></div>
+                        <div class="view-section"><h4>Nome da Transportadora</h4><p>${toUpperCase(t.nome)}</p></div>
+                        <div class="view-section"><h4>Nome do(a) Representante</h4><p>${representante}</p></div>
                     </div>
                     <div class="tab-content" id="view-tab-contato">
-                        <div class="view-section"><h4>E-mail:</h4><p style="text-transform:lowercase;">${email}</p></div>
-                        <div class="view-section"><h4>Telefones:</h4><p>${telefonesList}</p></div>
-                        <div class="view-section"><h4>Celulares:</h4><p>${celularesList}</p></div>
+                        <div class="view-section"><h4>E-mail</h4><p style="text-transform:lowercase;">${email}</p></div>
+                        <div class="view-section"><h4>Telefones</h4>${telefones}</div>
+                        <div class="view-section"><h4>Celulares</h4>${celulares}</div>
                     </div>
                     <div class="tab-content" id="view-tab-regioes">
-                        <div class="view-section"><h4>Regiões:</h4><p>${regioesText}</p></div>
+                        <div class="view-section"><h4>Regiões de Atendimento</h4>${regioesHTML}</div>
                     </div>
                     <div class="tab-content" id="view-tab-estados">
-                        <div class="view-section"><h4>Estados:</h4><p>${estadosText}</p></div>
+                        <div class="view-section"><h4>Estados de Atendimento</h4>${estadosHTML}</div>
                     </div>
                     <div class="modal-actions">
                         <button type="button" id="btnViewPrevious" onclick="previousViewTab()" class="secondary" style="display:none;">Anterior</button>
